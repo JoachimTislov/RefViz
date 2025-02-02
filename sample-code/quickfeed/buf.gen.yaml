@@ -1,0 +1,10 @@
+# buf.gen.yaml defines a local generation template.
+# For details, see https://docs.buf.build/configuration/v1/buf-gen-yaml
+version: v1
+plugins:
+  - plugin: go-patch
+    out: ./
+    opt: plugin=go,paths=source_relative
+  - plugin: connect-go
+    out: ./
+    opt: paths=source_relative

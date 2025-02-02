@@ -1,0 +1,91 @@
+syntax = "proto3";
+package qf;
+option go_package   = "github.com/quickfeed/quickfeed/qf";
+option swift_prefix = "";
+
+import "qf/types.proto";
+
+// Message types that are used as requests and responses in API calls.
+
+message CourseSubmissions {
+    map<uint64, Submissions> submissions = 1;
+}
+
+message ReviewRequest {
+    uint64 courseID = 1;
+    Review review   = 2;
+}
+
+message CourseRequest {
+    uint64 courseID = 1;
+}
+
+message GroupRequest {
+    uint64 courseID = 1;
+    uint64 userID   = 2;
+    uint64 groupID  = 3;
+}
+
+message Organization {
+    uint64 ScmOrganizationID   = 1;
+    string ScmOrganizationName = 2;
+}
+
+message EnrollmentRequest {
+    oneof FetchMode {
+        uint64 courseID = 1;
+        uint64 userID   = 2;
+    }
+    repeated Enrollment.UserStatus statuses = 3;
+}
+
+message SubmissionRequest {
+    enum SubmissionType {
+        ALL   = 0;  // fetch all submissions
+        USER  = 1;  // fetch all user submissions
+        GROUP = 2;  // fetch all group submissions
+    }
+    uint64 CourseID     = 1;
+    uint64 AssignmentID = 2;  // only used for user and group submissions
+    oneof FetchMode {
+        uint64 UserID       = 3;  // fetch single user's submissions with build info
+        uint64 GroupID      = 4;  // fetch single group's submissions with build info
+        uint64 SubmissionID = 5;  // fetch single specific submission with build info
+        SubmissionType Type = 6;  // fetch all submissions of given type without build info
+    }
+}
+
+message UpdateSubmissionRequest {
+    uint64 submissionID      = 1;
+    uint64 courseID          = 2;
+    uint32 score             = 3;
+    bool released            = 4;
+    repeated qf.Grade grades = 5;
+}
+
+message UpdateSubmissionsRequest {
+    uint64 courseID     = 1;
+    uint64 assignmentID = 2;
+    uint32 scoreLimit   = 3;
+    bool release        = 4;
+    bool approve        = 5;
+}
+
+// used to check whether student/group submission repo is empty
+message RepositoryRequest {
+    uint64 userID   = 1;
+    uint64 groupID  = 2;
+    uint64 courseID = 3;
+}
+
+message Repositories {
+    map<uint32, string> URLs = 1;  // Map key is the Repository.Type
+}
+
+message RebuildRequest {
+    uint64 courseID     = 1;
+    uint64 assignmentID = 2;
+    uint64 submissionID = 3;
+}
+
+message Void {}

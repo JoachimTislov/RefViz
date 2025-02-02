@@ -1,0 +1,278 @@
+syntax = "proto3";
+package qf;
+option go_package   = "github.com/quickfeed/quickfeed/qf";
+option swift_prefix = "";
+
+import "google/protobuf/timestamp.proto";
+import "kit/score/score.proto";
+import "patch/go.proto";
+
+// Collection of all message types that are saved in the database.
+
+// Note on use of protopatch's go.field to translate to a database schema via GORM
+//
+// To define fields that should be ignored by the database, use this tag:
+//   [(go.field) = {tags: 'gorm:"-"'}];
+//
+// To define multiple database attributes (fields) that combine to form a unique identifier,
+// use the following tag, replacing the <id_name> with the specific unique database identifier;
+// this will set the SQL UNIQUE constraint for the database:
+//   [(go.field) = {tags: 'gorm:"uniqueIndex:<id_name>"'}];
+//
+// To define a field that must use a custom serializer because of a type not directly supported by GORM, use:
+//  [(go.field) = {tags: 'gorm:"serializer:<custom_serializer>"'}]
+//
+// To define a field that must be stored in the database as a specific type, use:
+// [(go.field) = {tags: 'gorm:"type:<type>"'}]
+
+// USERS AND USERGROUPS //
+
+message User {
+    uint64 ID        = 1;
+    bool IsAdmin     = 2;
+    string Name      = 3;
+    string StudentID = 4;
+    string Email     = 5;
+    string AvatarURL = 6;
+    string Login     = 7;
+
+    bool UpdateToken    = 8;   // Filter; True if user's JWT token needs to be updated.
+    uint64 ScmRemoteID  = 9;   // Filter; The user's ID on the remote provider.
+    string RefreshToken = 10;  // Filter; The user's refresh token that may be exchanged for an access token.
+
+    repeated Enrollment Enrollments = 11;
+}
+
+message Users {
+    repeated User users = 1;
+}
+
+message Group {
+    enum GroupStatus {
+        PENDING  = 0;
+        APPROVED = 1;
+    }
+    uint64 ID          = 1;
+    string name        = 2 [(go.field) = { tags: 'gorm:"uniqueIndex:group"' }];
+    uint64 courseID    = 3 [(go.field) = { tags: 'gorm:"uniqueIndex:group"' }];
+    GroupStatus status = 5;
+
+    repeated User users             = 6 [(go.field) = { tags: 'gorm:"many2many:group_users;"' }];
+    repeated Enrollment enrollments = 7;
+}
+
+message Groups {
+    repeated Group groups = 1;
+}
+
+//   COURSES   //
+
+message Course {
+    uint64 ID                      = 1;
+    uint64 courseCreatorID         = 2;
+    string name                    = 3;
+    string code                    = 4 [(go.field) = { tags: 'gorm:"uniqueIndex:course"' }];
+    uint32 year                    = 5 [(go.field) = { tags: 'gorm:"uniqueIndex:course"' }];
+    string tag                     = 6;
+    uint64 ScmOrganizationID       = 8;
+    string ScmOrganizationName     = 9;  // The organization's SCM name, e.g., dat520-2020.
+    uint32 slipDays                = 10;
+    string DockerfileDigest        = 11;  // Digest of the dockerfile used to build the course's docker image.
+    Enrollment.UserStatus enrolled = 12 [(go.field) = { tags: 'gorm:"-"' }];
+
+    repeated Enrollment enrollments = 13;
+    repeated Assignment assignments = 14;
+    repeated Group groups           = 15;
+}
+
+message Courses {
+    repeated Course courses = 1;
+}
+
+message Repository {
+    enum Type {
+        NONE        = 0;
+        INFO        = 1;
+        ASSIGNMENTS = 2;
+        TESTS       = 3;
+        USER        = 4;
+        GROUP       = 5;
+    }
+    uint64 ID                = 1;
+    uint64 ScmOrganizationID = 2 [(go.field) = { tags: 'gorm:"uniqueIndex:repository"' }];
+    uint64 ScmRepositoryID   = 3;  // ID of a github repository
+    uint64 userID            = 4 [(go.field) = { tags: 'gorm:"uniqueIndex:repository"' }];
+    uint64 groupID           = 5 [(go.field) = { tags: 'gorm:"uniqueIndex:repository"' }];
+    string HTMLURL           = 6;
+    Type repoType            = 7 [(go.field) = { tags: 'gorm:"uniqueIndex:repository"' }];
+    repeated Issue issues    = 8;  // Issues associated with this repository
+}
+
+message Enrollment {
+    enum UserStatus {
+        NONE    = 0;
+        PENDING = 1;
+        STUDENT = 2;
+        TEACHER = 3;
+    }
+    enum DisplayState {
+        UNSET    = 0;
+        HIDDEN   = 1;
+        VISIBLE  = 2;
+        FAVORITE = 3;
+    }
+    uint64 ID                                  = 1;
+    uint64 courseID                            = 2 [(go.field) = { tags: 'gorm:"uniqueIndex:enrollment"' }];
+    uint64 userID                              = 3 [(go.field) = { tags: 'gorm:"uniqueIndex:enrollment"' }];
+    uint64 groupID                             = 4;
+    User user                                  = 5;
+    Course course                              = 6;
+    Group group                                = 7;
+    UserStatus status                          = 8;
+    DisplayState state                         = 9;
+    uint32 slipDaysRemaining                   = 10 [(go.field) = { tags: 'gorm:"-"' }];
+    google.protobuf.Timestamp lastActivityDate = 11 [(go.field) = { tags: 'gorm:"serializer:timestamp;type:datetime"' }];
+    uint64 totalApproved                       = 12;
+    repeated UsedSlipDays usedSlipDays         = 13;
+}
+
+message UsedSlipDays {
+    uint64 ID           = 1;
+    uint64 enrollmentID = 2;
+    uint64 assignmentID = 3;
+    uint32 usedDays     = 4;
+}
+
+message Enrollments {
+    repeated Enrollment enrollments = 1;
+}
+
+//   LABS    //
+
+message Assignment {
+    uint64 ID                          = 1;
+    uint64 CourseID                    = 2;  // foreign key
+    string name                        = 3;
+    google.protobuf.Timestamp deadline = 4 [(go.field) = { tags: 'gorm:"serializer:timestamp;type:datetime"' }];
+    bool autoApprove                   = 5;
+    uint32 order                       = 6;
+    bool isGroupLab                    = 7;
+    uint32 scoreLimit                  = 8;   // minimal score limit for auto approval
+    uint32 reviewers                   = 9;   // number of reviewers that will review submissions for this assignment
+    uint32 containerTimeout            = 10;  // container timeout for this assignment
+    repeated Submission submissions    = 11;  // submissions produced for this assignment
+    repeated Task tasks                = 12;  // tasks associated with this assignment
+    repeated GradingBenchmark gradingBenchmarks = 13;  // grading benchmarks for this assignment
+}
+
+message Task {
+    uint64 ID              = 1;
+    uint64 assignmentID    = 2;  // foreign key
+    uint32 assignmentOrder = 3;
+    string title           = 4;
+    string body            = 5;
+    string name            = 6;
+    repeated Issue issues  = 7;  // Issues that use this task as a benchmark
+}
+
+message Issue {
+    uint64 ID             = 1;
+    uint64 repositoryID   = 2;  // Represents the internal ID of a repository
+    uint64 taskID         = 3;  // Task that this issue draws its content from
+    uint64 ScmIssueNumber = 4;  // Issue number on scm. Needed for associating db issue with scm issue
+}
+
+message PullRequest {
+    enum Stage {
+        NONE     = 0;
+        DRAFT    = 1;
+        REVIEW   = 2;
+        APPROVED = 3;
+    }
+    uint64 ID              = 1;
+    uint64 ScmRepositoryID = 2;  // Represents the scm repository ID
+    uint64 taskID          = 3;  // Foreign key
+    uint64 issueID         = 4;  // Foreign key
+    uint64 userID          = 5;  // The user who owns this PR
+    uint64 ScmCommentID    = 6;  // Scm ID of the comment used for automatic feedback
+    string sourceBranch    = 7;  // The source branch for this pull request
+    uint64 number          = 8;  // Pull request number
+    Stage stage            = 9;
+}
+
+message Assignments {
+    repeated Assignment assignments = 1;
+}
+
+message Submission {
+    enum Status {
+        NONE     = 0;
+        APPROVED = 1;
+        REJECTED = 2;
+        REVISION = 3;
+    }
+    uint64 ID                              = 1;
+    uint64 AssignmentID                    = 2;  // foreign key
+    uint64 userID                          = 3;
+    uint64 groupID                         = 4;
+    uint32 score                           = 5;
+    string commitHash                      = 6;
+    bool released                          = 7;  // true => feedback is visible to the student or group members
+    repeated Grade Grades                  = 8;
+    google.protobuf.Timestamp approvedDate = 9 [(go.field) = { tags: 'gorm:"serializer:timestamp;type:datetime"' }];
+    repeated Review reviews                = 10;  // reviews produced for this submission
+    score.BuildInfo BuildInfo              = 11;  // build info for tests
+    repeated score.Score Scores            = 12;  // list of scores for different tests
+}
+
+message Submissions {
+    repeated Submission submissions = 1;
+}
+
+message Grade {
+    uint64 SubmissionID = 1 [(go.field) = { tags: 'gorm:"uniqueIndex:grade"' }];
+    uint64 UserID       = 2 [(go.field) = { tags: 'gorm:"uniqueIndex:grade"' }];
+    qf.Submission.Status Status = 3;
+}
+
+//   MANUAL GRADING   //
+
+message GradingBenchmark {
+    uint64 ID                          = 1;
+    uint64 CourseID                    = 2;  // foreign key
+    uint64 AssignmentID                = 3;  // foreign key
+    uint64 ReviewID                    = 4;  // foreign key
+    string heading                     = 5;
+    string comment                     = 6;
+    repeated GradingCriterion criteria = 7 [(go.field) = { tags: 'gorm:"foreignKey:BenchmarkID"' }];
+}
+
+message Benchmarks {
+    repeated GradingBenchmark benchmarks = 1;
+}
+
+message GradingCriterion {
+    enum Grade {
+        NONE   = 0;
+        FAILED = 1;
+        PASSED = 2;
+    }
+    uint64 ID          = 1;
+    uint64 BenchmarkID = 2;  // foreign key
+    uint64 CourseID    = 3;  // foreign key
+    uint64 points      = 4;
+    string description = 5;
+    Grade grade        = 6;
+    string comment     = 7;
+}
+
+message Review {
+    uint64 ID                                   = 1;
+    uint64 SubmissionID                         = 2;  // foreign key
+    uint64 ReviewerID                           = 3;  // UserID of the reviewer
+    string feedback                             = 4;
+    bool ready                                  = 5;
+    uint32 score                                = 6;
+    repeated GradingBenchmark gradingBenchmarks = 7 [(go.field) = { tags: 'gorm:"foreignKey:ReviewID"' }];
+    google.protobuf.Timestamp edited            = 8 [(go.field) = { tags: 'gorm:"serializer:timestamp;type:datetime"' }];
+}

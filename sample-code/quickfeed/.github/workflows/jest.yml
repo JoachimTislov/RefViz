@@ -1,0 +1,28 @@
+name: Jest Test
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'public/src/**'
+  pull_request:
+    paths:
+      - 'public/src/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install modules
+        working-directory: ./public
+        run: npm i
+
+      - name: Run tests
+        working-directory: ./public/src/__tests__
+        run: npm test -- --testPathIgnorePatterns="/e2e/|/testHelpers/"

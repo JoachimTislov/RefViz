@@ -1,0 +1,25 @@
+{
+    "cSpell.words": [
+        "atoi",
+        "cmds",
+        "deadcode",
+        "doesnotexist",
+        "extendee",
+        "godox",
+        "goimports",
+        "golangci",
+        "gopb",
+        "gorm",
+        "gosecret",
+        "Idxs",
+        "malloc",
+        "printf",
+        "protobuf",
+        "protoc",
+        "protoimpl",
+        "struct",
+        "structcheck",
+        "Unexported",
+        "varcheck"
+    ]
+}
