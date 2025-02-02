@@ -1,6 +1,10 @@
 # Project-Visualizer
 
-Uses references to map out a graph of the code base, maps are flexible and can be for a single file or folder. 
+Uses references to map out a graph of the code base, maps are flexible and can be for a single file or folder.
+
+## About and recommended usage
+
+Creating maps requires extracting symbols and their references which a json file will keep track of. The cache will be checked each time a new map is generated to boost preformance, I recommend scanning the whole code base and fill up the cache to prevent long generation time. The cache will each time check if the modification value of the file differs, and if they do, scan the file again. 
 
 ## Dependencies
 
