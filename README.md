@@ -45,9 +45,9 @@ Create a system which is capable of visualizing any project's code base. Realist
 
 ### Subgoals
 
-- Finish the project for just Go code, since Gopls offer a fantastic CLI to find extract references for symbols which can also be extracted :)
+- Finish the project for just Go code, since Gopls offer a fantastic CLI to extract references for symbols which can also be extracted :)
 - Write readable and structured code
 - Document the process/code 
 - Implement various CLI tools for finding references.
-- Optionally create generic code which can find references for any language, but thats not my priority, not sure if its even possible
-- Set up communication with LSP servers for each unsupported language
+- Optionally write generic code which can find references for any language, but thats not my priority, not sure if its even possible
+- Establish communication with LSP servers for unsupported languages, especially when libraries lack CLI support.
