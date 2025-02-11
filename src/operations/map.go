@@ -1,0 +1,31 @@
+package op
+
+import (
+	"fmt"
+	"os"
+)
+
+func CreateMap(name *string) error {
+	if _, err := os.Create(GetMapPath(name)); err != nil {
+		return fmt.Errorf("error creating map: %v", err)
+	}
+	return nil
+}
+
+func DeleteMap(name *string) error {
+	if err := os.Remove(GetMapPath(name)); err != nil {
+		return fmt.Errorf("error deleting map: %v", err)
+	}
+	return nil
+}
+
+func ListMaps() error {
+	maps, err := os.ReadDir(mapFolderPath)
+	if err != nil {
+		return fmt.Errorf("error reading directory: %v", err)
+	}
+	for _, m := range maps {
+		fmt.Println(m.Name())
+	}
+	return nil
+}
