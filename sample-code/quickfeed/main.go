@@ -16,6 +16,7 @@ import (
 	"github.com/quickfeed/quickfeed/doc"
 	"github.com/quickfeed/quickfeed/internal/env"
 	"github.com/quickfeed/quickfeed/internal/qlog"
+	"github.com/quickfeed/quickfeed/internal/rand"
 	"github.com/quickfeed/quickfeed/scm"
 	"github.com/quickfeed/quickfeed/web"
 	"github.com/quickfeed/quickfeed/web/auth"
@@ -48,15 +49,27 @@ func main() {
 		public   = flag.String("http.public", env.PublicDir(), "path to content to serve")
 		httpAddr = flag.String("http.addr", ":443", "HTTP listen address")
 		dev      = flag.Bool("dev", false, "run development server with self-signed certificates")
+		watch    = flag.Bool("watch", false, "watch for changes and reload")
 		newApp   = flag.Bool("new", false, "create new GitHub app")
+		secret   = flag.Bool("secret", false, "create new secret for JWT signing")
 	)
 	flag.Parse()
-
+	const envFile = ".env"
+	if *secret {
+		log.Println("Generating new random secret for signing JWT tokens...")
+		if err := env.Save(env.RootEnv(envFile), map[string]string{
+			"QUICKFEED_AUTH_SECRET": rand.String(),
+		}); err != nil {
+			log.Fatal(err)
+		}
+	}
 	// Load environment variables from $QUICKFEED/.env.
 	// Will not override variables already defined in the environment.
-	const envFile = ".env"
 	if err := env.Load(env.RootEnv(envFile)); err != nil {
 		log.Fatal(err)
+	}
+	if env.AuthSecret() == "" {
+		log.Fatal("Required QUICKFEED_AUTH_SECRET is not set")
 	}
 
 	if env.Domain() == "localhost" {
@@ -121,13 +134,19 @@ func main() {
 	router := qfService.RegisterRouter(tokenManager, authConfig, *public)
 	handler := h2c.NewHandler(router, &http2.Server{})
 
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+	if *dev && *watch {
+		// Wrap handler with file watcher
+		// for live-reloading in development mode.
+		handler = web.WatchHandler(ctx, handler)
+	}
+
 	srv, err := srvFn(*httpAddr, handler)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer stop()
 	go func() {
 		<-ctx.Done()
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)

@@ -61,5 +61,10 @@ func initFolder() error {
 }
 
 func loadCache() error {
+	if exists(cachePath()) {
+		if err := GetFile(cachePath(), &cache); err != nil {
+			return fmt.Errorf("error getting cache file: %v", err)
+		}
+	}
 	return nil
 }

@@ -1,6 +1,8 @@
 package types
 
-type Cache map[string]struct {
+type Cache map[string]entry
+
+type entry struct {
 	Path    string     `json:"path"` // relative path to the file
 	ModTime int64      `json:"modTime"`
 	Symbols *[]*Symbol `json:"symbols"`

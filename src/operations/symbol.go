@@ -3,7 +3,6 @@ package op
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/JoachimTislov/Project-Visualizer/lsp"
@@ -51,15 +50,14 @@ func createPosition(p string) types.Position {
 	}
 }
 
-func addSymbolsToFile(symbols *[]*types.Symbol, absPath *string) error {
-	f, err := os.Stat(*absPath)
+func addSymbolsToFile(symbols *[]*types.Symbol, relPath *string) error {
+	f, err := os.Stat(*relPath)
 	if err != nil {
-		return fmt.Errorf("error analyzing content: %s, err: %v", *absPath, err)
+		return fmt.Errorf("error analyzing content: %s, err: %v", *relPath, err)
 	}
 	name := f.Name()
-	filepath.Base(*absPath)
 	if entry, ok := (*cache)[name]; ok {
-		entry.Path = *absPath
+		entry.Path = *relPath
 		entry.ModTime = f.ModTime().Unix()
 		entry.Symbols = symbols
 		(*cache)[name] = entry
