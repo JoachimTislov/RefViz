@@ -6,21 +6,21 @@ import (
 )
 
 func CreateMap(name *string) error {
-	if _, err := os.Create(GetMapPath(name)); err != nil {
+	if _, err := os.Create(getMapPath(name)); err != nil {
 		return fmt.Errorf("error creating map: %v", err)
 	}
 	return nil
 }
 
 func DeleteMap(name *string) error {
-	if err := os.Remove(GetMapPath(name)); err != nil {
+	if err := os.Remove(getMapPath(name)); err != nil {
 		return fmt.Errorf("error deleting map: %v", err)
 	}
 	return nil
 }
 
 func ListMaps() error {
-	maps, err := os.ReadDir(mapFolderPath)
+	maps, err := os.ReadDir(mapPath())
 	if err != nil {
 		return fmt.Errorf("error reading directory: %v", err)
 	}

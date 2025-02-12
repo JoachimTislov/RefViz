@@ -3,27 +3,20 @@ package op
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/JoachimTislov/Project-Visualizer/lsp"
 	"github.com/JoachimTislov/Project-Visualizer/types"
 )
 
-const (
-	symbols  = "symbols"
-	method   = "Method"
-	function = "Function"
-)
-
-var cache = &types.Cache{}
-
-func getSymbols(filePath string) (*[]*types.Symbol, error) {
-	s := &[]*types.Symbol{}
+func getSymbols(filePath string) ([]*types.Symbol, error) {
+	var s []*types.Symbol
 	output, err := lsp.RunGopls(symbols, filePath)
 	if err != nil {
 		return nil, fmt.Errorf("error when running gopls command: %s, err: %s", symbols, err)
 	}
-	extractSymbols(string(output), s)
+	extractSymbols(string(output), &s)
 	return s, nil
 }
 
@@ -58,23 +51,22 @@ func createPosition(p string) types.Position {
 	}
 }
 
-func addSymbolsToFile(symbols *[]*types.Symbol, content *string) error {
-	f, err := os.Stat(*content)
+func addSymbolsToFile(symbols *[]*types.Symbol, absPath *string) error {
+	f, err := os.Stat(*absPath)
 	if err != nil {
-		return fmt.Errorf("error analyzing content: %s, err: %v", *content, err)
+		return fmt.Errorf("error analyzing content: %s, err: %v", *absPath, err)
 	}
 	name := f.Name()
+	filepath.Base(*absPath)
 	if entry, ok := (*cache)[name]; ok {
-		if entry.Path, err = getRelPath(*content); err != nil {
-			return err
-		}
+		entry.Path = *absPath
 		entry.ModTime = f.ModTime().Unix()
 		entry.Symbols = symbols
 		(*cache)[name] = entry
 	} else {
 		return fmt.Errorf("error: %s not found in file map", name)
 	}
-	if err := marshalAndWriteToFile(cache, fileMapPath); err != nil {
+	if err := marshalAndWriteToFile(cache, cachePath()); err != nil {
 		return err
 	}
 	return nil

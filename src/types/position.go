@@ -7,6 +7,6 @@ type Position struct {
 	CharRange string `json:"charRange"`
 }
 
-func (p Position) GetPos() string {
+func (p Position) String() string {
 	return fmt.Sprintf("%s:%s", p.Line, p.CharRange)
 }

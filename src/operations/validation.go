@@ -2,19 +2,13 @@ package op
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
-)
-
-type sbMap map[string]bool
-
-var (
-	inExt   = sbMap{".go": true, ".ts": true, ".tsx": true} // supported extensions
-	exDirs  = sbMap{"node_modules": true, "doc": true, ".git": true}
-	exFiles = sbMap{}
 )
 
 // checks if the directory or file is valid
 func isValid(isDir bool, content *string) error {
+	exDirs, exFiles, inExt := getContentFilters()
 	if isDir {
 		if exDirs[*content] {
 			return fmt.Errorf("error: %s is an excluded directory", *content)
@@ -29,4 +23,16 @@ func isValid(isDir bool, content *string) error {
 		// bools are initialized to false, so no need to set it to false
 	}
 	return nil
+}
+
+// checks if the content is valid
+func checkIfValid(content *string) bool {
+	if c, err := os.Stat(*content); err != nil {
+		return false
+	} else {
+		if err := isValid(c.IsDir(), content); err != nil {
+			return false
+		}
+	}
+	return true
 }

@@ -1,9 +1,9 @@
 package types
 
-func NewGraphvizMap(name string) *GraphvizMap {
+func NewGraphvizMap(name *string) *GraphvizMap {
 	return &GraphvizMap{
 		Root: &folderMap{},
-		Name: name,
+		Name: *name,
 	}
 }
 

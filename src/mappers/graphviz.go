@@ -12,14 +12,14 @@ import (
 )
 
 func CreateGraphvizFile(mapName *string) error {
-	file, err := createDotFile(*mapName)
+	file, err := createDotFile(mapName)
 	if err != nil {
 		return fmt.Errorf("error creating dot file: %v", err)
 	}
 	defer file.Close()
 
-	m := types.NewGraphvizMap(*mapName)
-	if err := op.GetFile(m.Name, *m); err != nil {
+	m := types.NewGraphvizMap(mapName)
+	if err := op.GetFile(m.Name, m); err != nil {
 		return fmt.Errorf("error getting map from cache: %v", err)
 	}
 
@@ -86,7 +86,7 @@ digraph {{$folderName}} {
 {{- end}}
 {{- end}}`
 
-func createDotFile(mapName string) (*os.File, error) {
+func createDotFile(mapName *string) (*os.File, error) {
 	file, err := os.Create(constructDotFilePath(mapName))
 	if err != nil {
 		return nil, fmt.Errorf("error creating dot file: %v", err)
@@ -94,7 +94,7 @@ func createDotFile(mapName string) (*os.File, error) {
 	return file, nil
 }
 
-func constructDotFilePath(mapName string) string {
-	dotFileName := fmt.Sprintf("%s.dot", mapName)
+func constructDotFilePath(mapName *string) string {
+	dotFileName := fmt.Sprintf("%s.dot", *mapName)
 	return filepath.Join("graphviz", dotFileName)
 }

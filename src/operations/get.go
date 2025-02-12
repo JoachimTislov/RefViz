@@ -4,63 +4,39 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/JoachimTislov/Project-Visualizer/types"
 )
 
-const (
-	mapFolderPath     = "maps"
-	rootFolderName    = "quickfeed"
-	rootFolderRelPath = "../../../quickfeed"
-)
-
-// GetFile checks status of file and creates it if it doesn't exist, with empty content
-// Reads the file and unmarshal it into the provided variable
+// GetFile reads the content of the file and unmarshals it into the given variable
 func GetFile(filePath string, v any) error {
-	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		os.WriteFile(filePath, []byte("{}"), 0o644)
-	}
-	if bytes, err := os.ReadFile(filePath); err != nil {
+	bytes, err := os.ReadFile(filePath)
+	if err != nil {
 		return fmt.Errorf("get content from cache error: %s", err)
-	} else {
-		if err := json.Unmarshal(bytes, &v); err != nil {
-			return fmt.Errorf("unmarshaling error: %s", err)
-		}
+	}
+	if err := json.Unmarshal(bytes, &v); err != nil {
+		return fmt.Errorf("unmarshaling error: %s", err)
 	}
 	return nil
 }
 
-func GetMapPath(name *string) string {
-	return filepath.Join(mapFolderPath, fmt.Sprintf("%s.json", *name))
-}
-
-func getRelPath(filePath string) (string, error) {
-	relPath, err := filepath.Rel(rootFolderRelPath, filePath)
-	if err != nil {
-		return "", fmt.Errorf("error getting relative path of file: %s, err: %v", filePath, err)
-	}
-	return relPath, nil
-}
-
 func getContent(content *string, scanForRefs *bool) error {
-	absPath, err := filepath.Abs(*content)
+	absPath, err := getAbsPath(*content)
 	if err != nil {
-		return fmt.Errorf("error getting absolute path of file: %s, err: %v", *content, err)
+		return err
 	}
 	symbols, err := getSymbols(absPath)
 	if err != nil {
 		return fmt.Errorf("error getting symbols: %s, err: %v", *content, err)
 	}
 	if *scanForRefs {
-		for _, s := range *symbols {
-			if err := GetRefs(absPath, s.Position.GetPos(), s.Refs); err != nil {
+		for _, s := range symbols {
+			if err := GetRefs(absPath, s.Position.String(), s.Refs); err != nil {
 				return fmt.Errorf("error getting references: %s, err: %v", *content, err)
 			}
 		}
 	}
-	if err := addSymbolsToFile(symbols, &absPath); err != nil {
+	if err := addSymbolsToFile(&symbols, &absPath); err != nil {
 		return fmt.Errorf("error adding symbols to file: %s, err: %v", *content, err)
 	}
 	return nil
@@ -82,10 +58,4 @@ func getRelatedMethod(symbols []types.Symbol, refParent *types.Symbol, refLinePo
 		}
 	}
 	return nil
-}
-
-// returns entry relative to last, of a string array with a given delimiter, i determines how many entries from the end
-func getLastEntry(str string, delimiter string, i int) string {
-	split := strings.Split(str, delimiter)
-	return split[len(split)-1-i]
 }

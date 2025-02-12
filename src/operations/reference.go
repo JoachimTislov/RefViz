@@ -8,8 +8,6 @@ import (
 	"github.com/JoachimTislov/Project-Visualizer/types"
 )
 
-const references = "references"
-
 func GetRefs(filePath string, symbolPos string, refs *[]*types.Ref) error {
 	pathToSymbol := fmt.Sprintf("%s:%s", filePath, symbolPos)
 	output, err := lsp.RunGopls(references, pathToSymbol)
@@ -33,4 +31,10 @@ func parseRefs(output string, refs *[]*types.Ref) {
 		ref := &types.Ref{Path: line, FolderName: folderName, FileName: fileName, MethodName: ""}
 		*refs = append(*refs, ref)
 	}
+}
+
+// returns entry relative to last, of a string array with a given delimiter, i determines how many entries from the end
+func getLastEntry(str string, delimiter string, i int) string {
+	split := strings.Split(str, delimiter)
+	return split[len(split)-1-i]
 }
