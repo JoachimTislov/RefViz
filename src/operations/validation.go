@@ -1,38 +1,36 @@
 package op
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 )
 
 // checks if the directory or file is valid
-func isValid(isDir bool, content *string) error {
+func isValid(isDir bool, content string) bool {
 	exDirs, exFiles, inExt := getContentFilters()
+	name := filepath.Base(content)
 	if isDir {
-		if exDirs[*content] {
-			return fmt.Errorf("error: %s is an excluded directory", *content)
+		if exDirs[name] {
+			return false
 		}
 	} else {
-		if exFiles[*content] {
-			return fmt.Errorf("error: %s is an excluded file", *content)
+		if exFiles[name] {
+			return false
 		}
-		if !inExt[filepath.Ext(*content)] {
-			return fmt.Errorf("error: File is not in a supported extension")
+		e := filepath.Ext(name)
+		if !inExt[e] {
+			return false
 		}
 		// bools are initialized to false, so no need to set it to false
 	}
-	return nil
+	return true
 }
 
 // checks if the content is valid
-func checkIfValid(content *string) bool {
-	if c, err := os.Stat(*content); err != nil {
-		return false
-	} else {
-		if err := isValid(c.IsDir(), content); err != nil {
-			return false
-		}
+func checkIfValid(content string) (os.FileInfo, bool) {
+	c, err := os.Stat(content)
+	if err != nil {
+		return c, false
 	}
-	return true
+	return c, isValid(c.IsDir(), content)
 }

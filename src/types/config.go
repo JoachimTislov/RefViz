@@ -2,7 +2,7 @@ package types
 
 func NewConfig() *Config {
 	return &Config{
-		InExt:   newSbMap("go"),
+		InExt:   newSbMap(".go"),
 		ExDirs:  newSbMap("node_modules", ".git"),
 		ExFiles: newSbMap(),
 	}

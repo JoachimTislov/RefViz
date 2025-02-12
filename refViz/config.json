@@ -1,6 +1,6 @@
 {
 	"includedExtensions": {
-		"go": true
+		".go": true
 	},
 	"excludedDirectories": {
 		".git": true,

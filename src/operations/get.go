@@ -20,24 +20,20 @@ func GetFile(filePath string, v any) error {
 	return nil
 }
 
-func getContent(content *string, scanForRefs *bool) error {
-	absPath, err := getAbsPath(*content)
+func getContent(path string, scanForRefs *bool) error {
+	symbols, err := getSymbols(path)
 	if err != nil {
-		return err
-	}
-	symbols, err := getSymbols(absPath)
-	if err != nil {
-		return fmt.Errorf("error getting symbols: %s, err: %v", *content, err)
+		return fmt.Errorf("error getting symbols: %s, err: %v", path, err)
 	}
 	if *scanForRefs {
 		for _, s := range symbols {
-			if err := GetRefs(absPath, s.Position.String(), s.Refs); err != nil {
-				return fmt.Errorf("error getting references: %s, err: %v", *content, err)
+			if err := getRefs(path, s.Position.String(), s.Refs); err != nil {
+				return fmt.Errorf("error getting references: %s, err: %v", path, err)
 			}
 		}
 	}
-	if err := addSymbolsToFile(&symbols, &absPath); err != nil {
-		return fmt.Errorf("error adding symbols to file: %s, err: %v", *content, err)
+	if err := cacheSymbols(symbols, path); err != nil {
+		return fmt.Errorf("error caching symbols: %s, err: %v", path, err)
 	}
 	return nil
 }

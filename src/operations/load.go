@@ -3,6 +3,8 @@ package op
 import (
 	"fmt"
 	"os"
+
+	"github.com/JoachimTislov/Project-Visualizer/types"
 )
 
 func LoadDefs() error {
@@ -64,6 +66,11 @@ func loadCache() error {
 	if exists(cachePath()) {
 		if err := GetFile(cachePath(), &cache); err != nil {
 			return fmt.Errorf("error getting cache file: %v", err)
+		}
+	} else {
+		cache = types.NewCache()
+		if err := marshalAndWriteToFile(cache, cachePath()); err != nil {
+			return fmt.Errorf("error creating cache file: %v", err)
 		}
 	}
 	return nil

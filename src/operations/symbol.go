@@ -3,6 +3,7 @@ package op
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/JoachimTislov/Project-Visualizer/lsp"
@@ -50,20 +51,24 @@ func createPosition(p string) types.Position {
 	}
 }
 
-func addSymbolsToFile(symbols *[]*types.Symbol, relPath *string) error {
-	f, err := os.Stat(*relPath)
+func cacheSymbols(symbols []*types.Symbol, path string) error {
+	f, err := os.Stat(path)
 	if err != nil {
-		return fmt.Errorf("error analyzing content: %s, err: %v", *relPath, err)
+		return fmt.Errorf("error analyzing content: %s, err: %v", path, err)
 	}
 	name := f.Name()
-	if entry, ok := (*cache)[name]; ok {
-		entry.Path = *relPath
-		entry.ModTime = f.ModTime().Unix()
-		entry.Symbols = symbols
-		(*cache)[name] = entry
-	} else {
-		return fmt.Errorf("error: %s not found in file map", name)
+	relPath, err := filepath.Rel(projectPath(), path)
+	if err != nil {
+		return fmt.Errorf("error getting relative path: %s, err: %v", path, err)
 	}
+	if cache == nil {
+		if err := loadCache(); err != nil {
+			return fmt.Errorf("error loading cache: %v", err)
+		}
+	}
+	(*cache)[name] = *types.NewCacheEntry(relPath, f.ModTime().Unix(), symbols)
+	// updates the cache file
+	// writefile creates the cache file if it does not exist
 	if err := marshalAndWriteToFile(cache, cachePath()); err != nil {
 		return err
 	}

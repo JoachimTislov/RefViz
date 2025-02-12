@@ -39,7 +39,8 @@ func AddExFiles(files ...string) error {
 
 func exclude(m *types.SbMap, items ...string) error {
 	for i := range items {
-		if checkIfValid(&items[i]) {
+		_, valid := checkIfValid(items[i])
+		if valid {
 			(*m)[items[i]] = true
 		} else {
 			return fmt.Errorf("invalid exclusion: %s", items[i])

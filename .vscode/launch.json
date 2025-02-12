@@ -10,6 +10,12 @@
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}/src/main.go",
+            "args": [
+                "-scan",
+                "-content",
+                "config.go",
+                "-references"
+            ]
         },
     ]
 }
