@@ -1,4 +1,4 @@
-# Project-Visualizer
+# RefViz - Reference vizualizer
 
 Uses references to map out a graph of the code base, maps are flexible and can be for a single file or folder.
 
