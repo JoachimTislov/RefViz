@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	op "github.com/JoachimTislov/Project-Visualizer/operations"
+	"github.com/JoachimTislov/Project-Visualizer/ops"
 	"github.com/JoachimTislov/Project-Visualizer/types"
 )
 
@@ -19,7 +19,7 @@ func CreateGraphvizFile(mapName *string) error {
 	defer file.Close()
 
 	m := types.NewGraphvizMap(mapName)
-	if err := op.GetFile(m.Name, m); err != nil {
+	if err := ops.GetFile(m.Name, m); err != nil {
 		return fmt.Errorf("error getting map from cache: %v", err)
 	}
 

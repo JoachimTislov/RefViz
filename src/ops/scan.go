@@ -5,7 +5,6 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 // Scan scans the content for symbols and references
@@ -58,7 +57,11 @@ func findContent(content *string) (string, error) {
 		if err != nil {
 			return fmt.Errorf("error trying to locate content: %s, err: %v", path, err)
 		}
-		if strings.Contains(d.Name(), *content) {
+		_, valid := checkIfValid(path)
+		if !valid {
+			return filepath.SkipDir
+		}
+		if d.Name() == *content {
 			contentPath = path
 			return fmt.Errorf(found)
 		}

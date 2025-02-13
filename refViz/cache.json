@@ -1,4 +1,18 @@
 {
+	"auth_secret.go": {
+		"path": "sample-code/quickfeed/internal/env/auth_secret.go",
+		"modTime": 1739399243,
+		"symbols": [
+			{
+				"name": "AuthSecret",
+				"kind": "Function",
+				"position": {
+					"line": "7",
+					"charRange": "6-16"
+				}
+			}
+		]
+	},
 	"config.go": {
 		"path": "src/operations/config.go",
 		"modTime": 1739401812,

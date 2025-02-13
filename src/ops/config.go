@@ -29,11 +29,11 @@ func checkPath(projectPath string) (string, error) {
 	return "", fmt.Errorf("Project path: %s does not exist\n", projectPath)
 }
 
-func AddExDirs(dirs ...string) error {
+func addExDirs(dirs ...string) error {
 	return exclude(&config.ExDirs, dirs...)
 }
 
-func AddExFiles(files ...string) error {
+func addExFiles(files ...string) error {
 	return exclude(&config.ExDirs, files...)
 }
 

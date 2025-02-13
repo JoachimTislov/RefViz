@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/JoachimTislov/Project-Visualizer/mappers"
-	op "github.com/JoachimTislov/Project-Visualizer/operations"
+	"github.com/JoachimTislov/Project-Visualizer/ops"
 	"github.com/JoachimTislov/Project-Visualizer/types"
 )
 
@@ -15,7 +15,7 @@ TODO: implement libraries which finds references for typescript
 */
 
 func init() {
-	if err := op.LoadDefs(); err != nil {
+	if err := ops.LoadDefs(); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -32,7 +32,7 @@ func main() {
 
 	checkOps(list, create, delete)
 	if *scan {
-		if err := op.Scan(findRefs, content); err != nil {
+		if err := ops.Scan(findRefs, content); err != nil {
 			log.Fatalf("Error scanning content: %v\n", err)
 		}
 	}
@@ -48,9 +48,9 @@ func main() {
 
 func checkOps(list *bool, create, delete *string) {
 	operations := types.Operation{
-		{*list, op.ListMaps, "error listing maps"},
-		{*create != "", func() error { return op.CreateMap(create) }, "error creating map"},
-		{*delete != "", func() error { return op.DeleteMap(delete) }, "error deleting map"},
+		{*list, ops.ListMaps, "error listing maps"},
+		{*create != "", func() error { return ops.CreateMap(create) }, "error creating map"},
+		{*delete != "", func() error { return ops.DeleteMap(delete) }, "error deleting map"},
 	}
 	for _, op := range operations {
 		if op.Condition {
