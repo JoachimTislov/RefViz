@@ -25,14 +25,13 @@ func main() {
 	list := flag.Bool("list", false, "list all maps")
 	create := flag.String("c", "", "create map")
 	delete := flag.String("d", "", "delete map")
-	scan := flag.Bool("scan", false, "scan the project for symbols")
-	findRefs := flag.Bool("references", false, "include references in the scan")
-	content := flag.String("content", "", "name of file or folder to scan, default is everything")
+	scan := flag.String("scan", "scan", "scan the project (just -scan), to scan a file or folder provide a name (e.g. -scan=main.go)")
+	findRefs := flag.Bool("refs", false, "include references in the scan")
 	flag.Parse()
 
 	checkOps(list, create, delete)
-	if *scan {
-		if err := ops.Scan(findRefs, content); err != nil {
+	if *scan != "scan" {
+		if err := ops.Scan(findRefs, scan); err != nil {
 			log.Fatalf("Error scanning content: %v\n", err)
 		}
 	}

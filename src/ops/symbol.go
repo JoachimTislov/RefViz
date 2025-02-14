@@ -10,18 +10,40 @@ import (
 	"github.com/JoachimTislov/Project-Visualizer/types"
 )
 
-func getSymbols(filePath string) ([]*types.Symbol, error) {
-	var s []*types.Symbol
-	output, err := lsp.RunGopls(symbols, filePath)
+func getSymbols(filePath string) (map[string]*types.Symbol, error) {
+	cacheEntry, err := checkCache(filePath)
 	if err != nil {
-		return nil, fmt.Errorf("error when running gopls command: %s, err: %s", symbols, err)
+		return nil, err
 	}
-	extractSymbols(string(output), &s)
-	return s, nil
+	f, err := os.Stat(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("error analyzing content: %s, err: %v", filePath, err)
+	}
+	if cacheEntry.ModTime != f.ModTime().Unix() {
+		output, err := lsp.RunGopls(symbols, filePath)
+		if err != nil {
+			return nil, fmt.Errorf("error when running gopls command: %s, err: %s", symbols, err)
+		}
+		extractSymbols(string(output), &cacheEntry.Symbols)
+	}
+	return cacheEntry.Symbols, nil
+}
+
+func checkCache(filePath string) (*types.CacheEntry, error) {
+	if cache == nil {
+		if err := loadCache(); err != nil {
+			return nil, fmt.Errorf("error loading cache: %v", err)
+		}
+	}
+	if entry, ok := (*cache)[filepath.Base(filePath)]; ok {
+		return &entry, nil
+	}
+	c := types.NewCacheEntry("", 0, make(map[string]*types.Symbol))
+	return &c, nil
 }
 
 // parses the output of the gopls symbols command and extracts the name, kind, and position of each symbol
-func extractSymbols(output string, s *[]*types.Symbol) {
+func extractSymbols(output string, s *map[string]*types.Symbol) {
 	for _, line := range strings.Split(output, "\n") {
 		args := strings.Split(line, " ")
 		if len(args) < 3 {
@@ -33,11 +55,11 @@ func extractSymbols(output string, s *[]*types.Symbol) {
 		if kind == method && strings.Contains(name, ".") {
 			name = strings.Split(name, ".")[1]
 		}
-		*s = append(*s, &types.Symbol{
+		(*s)[name] = &types.Symbol{
 			Name:     name,
 			Kind:     kind,
 			Position: createPosition(args[2]),
-		})
+		}
 	}
 }
 
@@ -51,7 +73,7 @@ func createPosition(p string) types.Position {
 	}
 }
 
-func cacheSymbols(symbols []*types.Symbol, path string) error {
+func cacheSymbols(symbols map[string]*types.Symbol, path string) error {
 	f, err := os.Stat(path)
 	if err != nil {
 		return fmt.Errorf("error analyzing content: %s, err: %v", path, err)
@@ -66,7 +88,7 @@ func cacheSymbols(symbols []*types.Symbol, path string) error {
 			return fmt.Errorf("error loading cache: %v", err)
 		}
 	}
-	(*cache)[name] = *types.NewCacheEntry(relPath, f.ModTime().Unix(), symbols)
+	(*cache)[name] = types.NewCacheEntry(relPath, f.ModTime().Unix(), symbols)
 	// updates the cache file
 	// writefile creates the cache file if it does not exist
 	if err := marshalAndWriteToFile(cache, cachePath()); err != nil {

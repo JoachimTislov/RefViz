@@ -55,13 +55,13 @@ func findContent(content *string) (string, error) {
 	var contentPath string
 	err := filepath.WalkDir(projectRootPath, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
-			return fmt.Errorf("error trying to locate content: %s, err: %v", path, err)
+			return fmt.Errorf("error walking from path: %s, err: %v", path, err)
 		}
 		_, valid := checkIfValid(path)
 		if !valid {
-			return filepath.SkipDir
+			return nil
 		}
-		if d.Name() == *content {
+		if filepath.Base(path) == *content {
 			contentPath = path
 			return fmt.Errorf(found)
 		}
@@ -72,5 +72,5 @@ func findContent(content *string) (string, error) {
 			return contentPath, nil
 		}
 	}
-	return "", err
+	return "", fmt.Errorf("error finding content: %s, err: %v", *content, err)
 }
