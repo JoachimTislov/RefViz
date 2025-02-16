@@ -24,6 +24,10 @@ func ListMaps() error {
 	if err != nil {
 		return fmt.Errorf("error reading directory: %v", err)
 	}
+	if len(maps) == 0 {
+		fmt.Println("No maps found")
+		return nil
+	}
 	for _, m := range maps {
 		fmt.Println(m.Name())
 	}

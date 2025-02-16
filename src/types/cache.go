@@ -4,9 +4,9 @@ func NewCache() *Cache {
 	return &Cache{}
 }
 
-func NewCacheEntry(path string, modTime int64, symbols map[string]*Symbol) CacheEntry {
+func NewCacheEntry(name string, modTime int64, symbols map[string]*Symbol) CacheEntry {
 	return CacheEntry{
-		Path:    path,
+		Name:    name,
 		ModTime: modTime,
 		Symbols: symbols,
 	}
@@ -15,7 +15,7 @@ func NewCacheEntry(path string, modTime int64, symbols map[string]*Symbol) Cache
 type Cache map[string]CacheEntry
 
 type CacheEntry struct {
-	Path    string             `json:"path"`
+	Name    string             `json:"name"`
 	ModTime int64              `json:"modTime"`
 	Symbols map[string]*Symbol `json:"symbols"`
 }

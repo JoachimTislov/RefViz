@@ -43,7 +43,7 @@ func tmp(name string) string {
 }
 
 func mapPath() string {
-	return getRootPath("maps")
+	return getRootPath(tmp("maps"))
 }
 
 // getProjectRoot returns the root directory of the users project

@@ -1,9 +1,11 @@
 clangd
 jdtls
 labelloc
+manifoldco
 myproject
 omnisharp
 Plotly
+promptui
 Pyright
 rankdir
 testmodule

@@ -13,10 +13,10 @@ const (
 	function       = "Function"
 	tempFolder     = "/refViz"
 	refVizRootPath = "refVizProjectRoot"
-	found          = "found"
+	scanAll        = "Scan all content"
 )
 
 var (
 	config = types.NewConfig()
-	cache  *types.Cache
+	cache  = types.NewCache()
 )

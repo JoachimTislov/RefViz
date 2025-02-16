@@ -6,7 +6,6 @@ import (
 
 	"github.com/JoachimTislov/Project-Visualizer/mappers"
 	"github.com/JoachimTislov/Project-Visualizer/ops"
-	"github.com/JoachimTislov/Project-Visualizer/types"
 )
 
 /*
@@ -25,13 +24,15 @@ func main() {
 	list := flag.Bool("list", false, "list all maps")
 	create := flag.String("c", "", "create map")
 	delete := flag.String("d", "", "delete map")
-	scan := flag.String("scan", "scan", "scan the project (just -scan), to scan a file or folder provide a name (e.g. -scan=main.go)")
+	scan := flag.Bool("scan", false, "scan the project for content")
+	content := flag.String("content", "", "content to scan, file or folder")
 	findRefs := flag.Bool("refs", false, "include references in the scan")
+	ask := flag.Bool("ask", false, "interactively select content to scan, scans all if not provided")
 	flag.Parse()
 
 	checkOps(list, create, delete)
-	if *scan != "scan" {
-		if err := ops.Scan(findRefs, scan); err != nil {
+	if *scan {
+		if err := ops.Scan(findRefs, content, *ask); err != nil {
 			log.Fatalf("Error scanning content: %v\n", err)
 		}
 	}
@@ -46,7 +47,11 @@ func main() {
 }
 
 func checkOps(list *bool, create, delete *string) {
-	operations := types.Operation{
+	operations := []struct {
+		Condition bool
+		Action    func() error
+		Msg       string
+	}{
 		{*list, ops.ListMaps, "error listing maps"},
 		{*create != "", func() error { return ops.CreateMap(create) }, "error creating map"},
 		{*delete != "", func() error { return ops.DeleteMap(delete) }, "error deleting map"},
