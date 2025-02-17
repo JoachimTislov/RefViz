@@ -3,6 +3,7 @@ package ops
 import (
 	"fmt"
 	"io/fs"
+	"log"
 	"os"
 	"path/filepath"
 
@@ -13,7 +14,7 @@ import (
 // If the content is a directory, it scans all files in the directory
 // If scanForRefs is true, it scans for references
 // If the content is a file, it only scans the file
-func Scan(findRefs *bool, content *string, ask bool) error {
+func Scan(scanAgain *bool, findRefs *bool, content *string, ask bool) error {
 	paths, err := findContent(content)
 	if err != nil {
 		return fmt.Errorf("error finding content: %s, err: %v", *content, err)
@@ -30,11 +31,11 @@ func Scan(findRefs *bool, content *string, ask bool) error {
 			return fmt.Errorf("error: %s is not a valid entity, err: %v", p, err)
 		}
 		if e.IsDir() {
-			if err := filepath.WalkDir(p, walk(findRefs)); err != nil {
+			if err := filepath.WalkDir(p, walk(scanAgain, findRefs)); err != nil {
 				return fmt.Errorf("error walking through directory: %s, err: %v", p, err)
 			}
 		}
-		if err := getContent(p, findRefs); err != nil {
+		if err := getContent(p, findRefs, scanAgain); err != nil {
 			return fmt.Errorf("error getting content: %s, err: %v", p, err)
 		}
 	}
@@ -42,13 +43,13 @@ func Scan(findRefs *bool, content *string, ask bool) error {
 }
 
 // walk walks through the directory and scans the files
-func walk(findRefs *bool) fs.WalkDirFunc {
+func walk(scanAgain *bool, findRefs *bool) fs.WalkDirFunc {
 	return func(path string, d os.DirEntry, err error) error {
 		if err != nil {
 			return fmt.Errorf("error walking through directory: %s, err: %v", path, err)
 		}
 		if !d.IsDir() && isValid(d.IsDir(), path) {
-			if err := getContent(path, findRefs); err != nil {
+			if err := getContent(path, findRefs, scanAgain); err != nil {
 				return fmt.Errorf("error getting content: %s, err: %v", path, err)
 			}
 		}
@@ -98,20 +99,23 @@ func askUser(paths []string, selectedPaths []string) ([]string, error) {
 	if value == scanAll || len(paths) == 1 {
 		return paths, nil
 	}
-	return askUser(removeIndex(paths, index), append(selectedPaths, value))
-}
-
-func removeIndex(slice []string, index int) []string {
-	if index < 0 || index >= len(slice) {
-		return slice
+	if value == exit {
+		log.Fatal("Cancelled by user")
 	}
-	return append(slice[:index], slice[index+1:]...)
+	// View createPrompt function to understand the logic
+	// Scan all is at index 0 and exit is at index len(paths) - 1
+	if index >= 1 && index < len(paths)+1 {
+		index -= 1
+		paths = append(paths[:index], paths[index+1:]...)
+	}
+	return askUser(paths, append(selectedPaths, value))
 }
 
 func createPrompt(paths []string) promptui.Select {
 	if len(paths) > 1 {
 		paths = append([]string{scanAll}, paths...)
 	}
+	paths = append(paths, exit)
 	return promptui.Select{
 		Label: "Select content to scan",
 		Items: paths,

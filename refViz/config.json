@@ -1,0 +1,9 @@
+{
+	"includedExtensions": {
+		".go": true
+	},
+	"excludedDirectories": {
+		".git": true,
+		"node_modules": true
+	}
+}

@@ -27,12 +27,13 @@ func main() {
 	scan := flag.Bool("scan", false, "scan the project for content")
 	content := flag.String("content", "", "content to scan, file or folder")
 	findRefs := flag.Bool("refs", false, "include references in the scan")
-	ask := flag.Bool("ask", false, "interactively select content to scan, scans all if not provided")
+	scanAgain := flag.Bool("scan.force", false, "forcing a new scan of symbols in the file. Used with -scan")
+	ask := flag.Bool("interact", false, "interactively select content to scan, scans all if not used")
 	flag.Parse()
 
 	checkOps(list, create, delete)
 	if *scan {
-		if err := ops.Scan(findRefs, content, *ask); err != nil {
+		if err := ops.Scan(scanAgain, findRefs, content, *ask); err != nil {
 			log.Fatalf("Error scanning content: %v\n", err)
 		}
 	}

@@ -14,6 +14,7 @@ const (
 	tempFolder     = "/refViz"
 	refVizRootPath = "refVizProjectRoot"
 	scanAll        = "Scan all content"
+	exit           = "Exit"
 )
 
 var (

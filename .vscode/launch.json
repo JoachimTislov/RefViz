@@ -25,7 +25,8 @@
             "args": [
                 "-scan",
                 "-content",
-                "service.go"
+                "main.go",
+                "-refs"
             ]
         }
     ]

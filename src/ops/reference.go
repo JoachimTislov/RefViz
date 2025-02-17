@@ -2,6 +2,7 @@ package ops
 
 import (
 	"fmt"
+	"log"
 	"path/filepath"
 	"strings"
 
@@ -9,11 +10,22 @@ import (
 	"github.com/JoachimTislov/Project-Visualizer/types"
 )
 
-func getRefs(pathToSymbol string, refs *map[string]*types.Ref) error {
-	output, err := lsp.RunGopls(references, pathToSymbol)
+func getRefs(path string, symbol *types.Symbol, refs *map[string]*types.Ref) error {
+
+	pathToSymbol := fmt.Sprintf("%s:%s", path, symbol.Position.String())
+
+	log.Printf("\t\tGetting references for symbol: %s\n", symbol.Name)
+
+	output, err := lsp.RunGopls(projectPath(), references, pathToSymbol)
 	if err != nil {
-		command := fmt.Sprintf("gopls references %s", pathToSymbol)
-		return fmt.Errorf("error when running gopls command: %s, err: %s", command, err)
+		return fmt.Errorf("error when running gopls command: %s, err: %s", fmt.Sprintf("gopls %s %s", references, pathToSymbol), err)
+	}
+	// if there are no references, add the symbol to the unused symbols list
+	if string(output) == "" {
+		fileName := filepath.Base(path)
+		folderName := filepath.Base(filepath.Dir(path))
+		(*cache).UnusedSymbols[path] = append((*cache).UnusedSymbols[path], types.NewUnusedSymbol(symbol.Name, folderName, fileName, pathToSymbol))
+		return nil
 	}
 	if err := parseRefs(string(output), refs); err != nil {
 		return fmt.Errorf("error parsing references: %s, err: %v", pathToSymbol, err)
@@ -54,7 +66,7 @@ func parseRefs(output string, refs *map[string]*types.Ref) error {
 
 // getRelatedMethod finds the closest method above the reference
 func getRelatedMethod(path string, refLinePos string, parentSymbol *types.Symbol) error {
-	symbols, err := getSymbols(path)
+	symbols, err := getSymbols(path, false)
 	if err != nil {
 		return fmt.Errorf("error getting symbols: %s, err: %v", path, err)
 	}
