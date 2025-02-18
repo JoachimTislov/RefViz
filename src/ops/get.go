@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/JoachimTislov/Project-Visualizer/types"
+	"github.com/JoachimTislov/RefViz/types"
 )
 
 // GetFile reads the content of the file and unmarshals it into the given variable

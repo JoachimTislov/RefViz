@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/JoachimTislov/Project-Visualizer/types"
+	"github.com/JoachimTislov/RefViz/types"
 )
 
 func save() error {

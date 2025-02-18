@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/JoachimTislov/Project-Visualizer/ops"
-	"github.com/JoachimTislov/Project-Visualizer/types"
+	"github.com/JoachimTislov/RefViz/ops"
+	"github.com/JoachimTislov/RefViz/types"
 )
 
 func CreateGraphvizFile(mapName *string) error {

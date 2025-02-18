@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/JoachimTislov/Project-Visualizer/lsp"
-	"github.com/JoachimTislov/Project-Visualizer/types"
+	"github.com/JoachimTislov/RefViz/lsp"
+	"github.com/JoachimTislov/RefViz/types"
 )
 
 func getRefs(path string, symbol *types.Symbol, refs *map[string]*types.Ref) error {

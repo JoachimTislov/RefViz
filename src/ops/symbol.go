@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/JoachimTislov/Project-Visualizer/lsp"
-	"github.com/JoachimTislov/Project-Visualizer/types"
+	"github.com/JoachimTislov/RefViz/lsp"
+	"github.com/JoachimTislov/RefViz/types"
 )
 
 func getSymbols(filePath string, scanAgain bool) (map[string]*types.Symbol, error) {

@@ -4,8 +4,8 @@ import (
 	"flag"
 	"log"
 
-	"github.com/JoachimTislov/Project-Visualizer/mappers"
-	"github.com/JoachimTislov/Project-Visualizer/ops"
+	"github.com/JoachimTislov/RefViz/mappers"
+	"github.com/JoachimTislov/RefViz/ops"
 )
 
 /*

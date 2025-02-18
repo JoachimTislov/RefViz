@@ -1,7 +1,7 @@
 package ops
 
 import (
-	"github.com/JoachimTislov/Project-Visualizer/types"
+	"github.com/JoachimTislov/RefViz/types"
 )
 
 const (

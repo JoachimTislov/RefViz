@@ -1,4 +1,4 @@
-module github.com/JoachimTislov/Project-Visualizer
+module github.com/JoachimTislov/RefViz
 
 go 1.23.4
 
