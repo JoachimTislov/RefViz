@@ -68,7 +68,7 @@ func loadFile(path string, v any) error {
 			return fmt.Errorf("error creating config file: %v", err)
 		}
 	} else {
-		if err := GetFile(path, v); err != nil {
+		if err := getFile(path, v); err != nil {
 			return fmt.Errorf("error getting config file: %v", err)
 		}
 	}

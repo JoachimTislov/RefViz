@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"log"
+	"time"
 
 	"github.com/JoachimTislov/RefViz/mappers"
 	"github.com/JoachimTislov/RefViz/ops"
@@ -26,16 +27,16 @@ func main() {
 	delete := flag.String("d", "", "delete map")
 	scan := flag.Bool("scan", false, "scan the project for content")
 	content := flag.String("content", "", "content to scan, file or folder")
-	findRefs := flag.Bool("refs", false, "include references in the scan")
-	scanAgain := flag.Bool("scan.force", false, "forcing a new scan of symbols in the file. Used with -scan")
-	ask := flag.Bool("interact", false, "interactively select content to scan, scans all if not used")
+	scanAgain := flag.Bool("again", false, "scan the project for content again")
 	flag.Parse()
 
 	checkOps(list, create, delete)
 	if *scan {
-		if err := ops.Scan(scanAgain, findRefs, content, *ask); err != nil {
+		startTime, err := ops.Scan(content, scanAgain)
+		if err != nil {
 			log.Fatalf("Error scanning content: %v\n", err)
 		}
+		log.Printf("Scanning took: %v\n", time.Since(*startTime))
 	}
 	if *graphviz != "" {
 		// Following can be written with any graphing library

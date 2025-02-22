@@ -3,6 +3,7 @@ package ops
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/JoachimTislov/RefViz/types"
 )
@@ -53,6 +54,9 @@ func projectPath() string {
 	path := os.Getenv(refVizRootPath)
 	if path == "" {
 		panic("project path not set")
+	}
+	if customPath != "" {
+		path = filepath.Join(path, customPath)
 	}
 	return path
 }

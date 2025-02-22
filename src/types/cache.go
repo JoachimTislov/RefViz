@@ -1,8 +1,10 @@
 package types
 
+import "sync"
+
 func NewCache() *Cache {
 	return &Cache{
-		UnusedSymbols: make(map[string][]unusedSymbol),
+		UnusedSymbols: make(map[string]map[string]UnusedSymbol),
 		Entries:       make(map[string]CacheEntry),
 	}
 }
@@ -15,22 +17,48 @@ func NewCacheEntry(name string, modTime int64, symbols map[string]*Symbol) Cache
 	}
 }
 
-func NewUnusedSymbol(name, dir, fileName, location string) unusedSymbol {
-	return unusedSymbol{
-		Name:     name,
+func NewUnusedSymbol(dir, fileName, location string) UnusedSymbol {
+	return UnusedSymbol{
 		Dir:      dir,
 		FileName: fileName,
 		Location: location,
 	}
 }
 
-type Cache struct {
-	UnusedSymbols map[string][]unusedSymbol `json:"unusedSymbols,omitempty"`
-	Entries       map[string]CacheEntry     `json:"entries,omitempty"`
+func (c *Cache) AddEntry(relPath string, entry *CacheEntry) {
+	c.Mu.Lock()
+	defer c.Mu.Unlock()
+
+	c.Entries[relPath] = *entry
 }
 
-type unusedSymbol struct {
-	Name     string `json:"name"`
+func (c *Cache) GetEntry(relPath string) *CacheEntry {
+	c.Mu.RLock()
+	defer c.Mu.RUnlock()
+
+	if entry, ok := c.Entries[relPath]; ok {
+		return &entry
+	}
+	return &CacheEntry{Symbols: make(map[string]*Symbol)}
+}
+
+func (c *Cache) AddUnusedSymbol(relPath string, name string, symbol UnusedSymbol) {
+	c.Mu.Lock()
+	defer c.Mu.Unlock()
+
+	if c.UnusedSymbols[relPath] == nil {
+		c.UnusedSymbols[relPath] = make(map[string]UnusedSymbol)
+	}
+	c.UnusedSymbols[relPath][name] = symbol
+}
+
+type Cache struct {
+	UnusedSymbols map[string]map[string]UnusedSymbol `json:"UnusedSymbols,omitempty"`
+	Entries       map[string]CacheEntry              `json:"entries,omitempty"`
+	Mu            sync.RWMutex                       `json:"mu,omitempty"`
+}
+
+type UnusedSymbol struct {
 	Dir      string `json:"dir"`
 	FileName string `json:"fileName"`
 	Location string `json:"location"`
@@ -47,11 +75,12 @@ type Symbol struct {
 	Kind     string          `json:"kind"`
 	Position Position        `json:"position"`
 	Refs     map[string]*Ref `json:"refs,omitempty"`
+	ZeroRefs bool            `json:"zeroRefs,omitempty"` // if true, the symbol has no references
 }
 
 type Ref struct {
-	Path         string `json:"path"`
-	FolderName   string `json:"folderName"`
-	FileName     string `json:"fileName"`
-	ParentSymbol Symbol `json:"parentSymbol"`
+	Path       string `json:"path"`
+	FolderName string `json:"folderName"`
+	FileName   string `json:"fileName"`
+	MethodName string `json:"methodName"`
 }

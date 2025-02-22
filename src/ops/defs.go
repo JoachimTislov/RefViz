@@ -5,8 +5,6 @@ import (
 )
 
 const (
-	samplePath     = "../../sample-code"
-	src            = "src"
 	references     = "references"
 	symbols        = "symbols"
 	method         = "Method"
@@ -14,7 +12,12 @@ const (
 	tempFolder     = "/refViz"
 	refVizRootPath = "refVizProjectRoot"
 	scanAll        = "Scan all content"
-	exit           = "Exit"
+	exit           = "Cancel"
+	scanSelected   = "Scan selected content"
+	yes            = "y"
+	// customPath is used to adjust the root path of the project
+	// This only for development, TODO: remove later
+	customPath = "" // /sample-code/quickfeed
 )
 
 var (

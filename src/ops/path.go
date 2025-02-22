@@ -9,8 +9,12 @@ import (
 	"strings"
 )
 
-func getMapPath(name *string) string {
-	return filepath.Join(mapPath(), fmt.Sprintf("%s.json", *name))
+func getMapPath(name string) string {
+	if !strings.Contains(name, ".") {
+		name = fmt.Sprintf("%s.json", name)
+	}
+	fmt.Print(name)
+	return filepath.Join(mapPath(), name)
 }
 
 func getAbsPath(path string) (string, error) {
@@ -44,6 +48,10 @@ func tmp(name string) string {
 
 func mapPath() string {
 	return getRootPath(tmp("maps"))
+}
+
+func DotFilePath(mapName *string) string {
+	return getRootPath(filepath.Join("graphviz", fmt.Sprintf("%s.dot", *mapName)))
 }
 
 // getProjectRoot returns the root directory of the users project

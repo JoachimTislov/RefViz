@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
 
 	"github.com/JoachimTislov/RefViz/types"
 )
 
 // GetFile reads the content of the file and unmarshals it into the given variable
-func GetFile(filePath string, v any) error {
+func getFile(filePath string, v any) error {
 	bytes, err := os.ReadFile(filePath)
 	if err != nil {
 		return fmt.Errorf("get content from cache error: %s", err)
@@ -21,32 +22,49 @@ func GetFile(filePath string, v any) error {
 	return nil
 }
 
-func getContent(path string, scanForRefs *bool, scanAgain *bool) error {
+func getContent(path string, scanAgain bool) error {
 
 	log.Println("Getting content for path: ", path)
 
-	symbols, err := getSymbols(path, *scanAgain)
+	c, err := getSymbols(path, scanAgain)
 	if err != nil {
 		return fmt.Errorf("error getting symbols: %s, err: %v", path, err)
 	}
-	if *scanForRefs {
 
-		log.Print("\tGetting references for path: ", path)
+	var scannedForRefs bool
+	var wg sync.WaitGroup
+	ch := make(chan error, len(c.Symbols))
 
-		for _, s := range symbols {
+	// Get references for each symbol
+	for _, s := range c.Symbols {
+		if len(s.Refs) == 0 && !s.ZeroRefs || scanAgain {
+			scannedForRefs = true
 			if s.Refs == nil {
 				s.Refs = make(map[string]*types.Ref)
 			}
-			if err := getRefs(path, s, &s.Refs); err != nil {
-				return fmt.Errorf("error getting references: %s, err: %v", path, err)
-			}
+			wg.Add(1)
+			go getRefs(path, s, &s.Refs, ch, &wg)
+		}
+	}
+	go func() {
+		wg.Wait()
+		close(ch)
+	}()
+
+	for err := range ch {
+		if err != nil {
+			return fmt.Errorf("error getting references: %v", err)
 		}
 	}
 
-	log.Printf("\tCaching symbols for path: %s\n", path)
+	if scannedForRefs {
+		log.Printf("Final caching for path: %s\n", path)
 
-	if err := cacheSymbols(symbols, path); err != nil {
-		return fmt.Errorf("error caching symbols: %s, err: %v", path, err)
+		if err := cacheEntry(c, path); err != nil {
+			return fmt.Errorf("error caching symbols: %s, err: %v", path, err)
+		}
+	} else {
+		log.Println("No references to scan for in path: ", path)
 	}
 	return nil
 }
