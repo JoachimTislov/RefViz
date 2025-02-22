@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"html/template"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/JoachimTislov/RefViz/ops"
-	"github.com/JoachimTislov/RefViz/types"
 )
 
 func CreateGraphvizFile(mapName *string) error {
@@ -18,24 +16,27 @@ func CreateGraphvizFile(mapName *string) error {
 	}
 	defer file.Close()
 
-	m := types.NewGraphvizMap(mapName)
-	if err := ops.GetFile(m.Name, m); err != nil {
-		return fmt.Errorf("error getting map from cache: %v", err)
-	}
-
-	t, err := createTemplate()
+	t, err := createTemplate(mapName)
 	if err != nil {
 		return fmt.Errorf("error creating template: %v", err)
 	}
 
-	err = t.Execute(file, m)
+	err = t.Execute(file, mapName)
 	if err != nil {
 		return fmt.Errorf("error executing template: %v", err)
 	}
 	return nil
 }
 
-func createTemplate() (*template.Template, error) {
+func createDotFile(mapName *string) (*os.File, error) {
+	file, err := os.Create(ops.DotFilePath(mapName))
+	if err != nil {
+		return nil, fmt.Errorf("error creating dot file: %v", err)
+	}
+	return file, nil
+}
+
+func createTemplate(mapName *string) (*template.Template, error) {
 	funcMap := template.FuncMap{
 		"replace":   strings.ReplaceAll,
 		"trimSpace": strings.TrimSpace,
@@ -43,7 +44,7 @@ func createTemplate() (*template.Template, error) {
 			return els
 		},
 	}
-	return template.New("graph").Funcs(funcMap).Parse(tmpl)
+	return template.New(*mapName).Funcs(funcMap).Parse(tmpl)
 }
 
 // https://golang.org/pkg/text/template/
@@ -85,16 +86,3 @@ digraph {{$folderName}} {
 	{{- template "subgraph" $subfolder -}}
 {{- end}}
 {{- end}}`
-
-func createDotFile(mapName *string) (*os.File, error) {
-	file, err := os.Create(constructDotFilePath(mapName))
-	if err != nil {
-		return nil, fmt.Errorf("error creating dot file: %v", err)
-	}
-	return file, nil
-}
-
-func constructDotFilePath(mapName *string) string {
-	dotFileName := fmt.Sprintf("%s.dot", *mapName)
-	return filepath.Join("graphviz", dotFileName)
-}
