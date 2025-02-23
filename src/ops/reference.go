@@ -11,38 +11,37 @@ import (
 	"github.com/JoachimTislov/RefViz/types"
 )
 
-func getRefs(path string, symbol *types.Symbol, refs *map[string]*types.Ref, c chan<- error, wg *sync.WaitGroup) {
+func getRefs(path string, symbol *types.Symbol, refs *map[string]*types.Ref, ch chan<- error, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	pathToSymbol := fmt.Sprintf("%s:%s", path, symbol.Position.String())
 	relPath, err := filepath.Rel(projectPath(), path)
 	if err != nil {
-		c <- fmt.Errorf("error getting relative path: %s, err: %v", path, err)
+		ch <- fmt.Errorf("error getting relative path: %s, err: %v", path, err)
 	}
 
 	log.Printf("\t\t Finding references for symbol: %s\n", symbol.Name)
 
 	output, err := lsp.RunGopls(projectPath(), references, pathToSymbol)
 	if err != nil {
-		c <- fmt.Errorf("error when running gopls command: %s, err: %s", fmt.Sprintf("gopls %s %s", references, pathToSymbol), err)
+		cache.LogError(fmt.Sprintf("gopls %s %s", references, pathToSymbol))
+		symbol.ZeroRefs = true
+		ch <- nil
 	}
 	// if there are no references, add the symbol to the unused symbols list
 	if string(output) == "" {
 		symbol.ZeroRefs = true
 		// Add to unused map in the cache
-		if !strings.HasPrefix(symbol.Name, "Test") {
-			cache.AddUnusedSymbol(relPath, symbol.Name, types.NewUnusedSymbol(
-				filepath.Base(filepath.Dir(path)),
-				filepath.Base(path),
-				pathToSymbol,
-			))
-		}
-		c <- nil
+		cache.AddUnusedSymbol(relPath, symbol.Name, types.NewUnusedSymbol(
+			filepath.Base(filepath.Dir(path)),
+			filepath.Base(path),
+			pathToSymbol,
+		))
 	}
+
 	if err := parseRefs(string(output), refs); err != nil {
-		c <- fmt.Errorf("error parsing references: %s, err: %v", pathToSymbol, err)
+		ch <- fmt.Errorf("error parsing references: %s, err: %v", pathToSymbol, err)
 	}
-	c <- nil
 }
 
 func parseRefs(output string, refs *map[string]*types.Ref) error {

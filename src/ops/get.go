@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"sync"
 
 	"github.com/JoachimTislov/RefViz/types"
@@ -23,7 +24,6 @@ func getFile(filePath string, v any) error {
 }
 
 func getContent(path string, scanAgain bool) error {
-
 	log.Println("Getting content for path: ", path)
 
 	c, err := getSymbols(path, scanAgain)
@@ -37,7 +37,7 @@ func getContent(path string, scanAgain bool) error {
 
 	// Get references for each symbol
 	for _, s := range c.Symbols {
-		if len(s.Refs) == 0 && !s.ZeroRefs || scanAgain {
+		if !strings.HasPrefix(s.Name, "Test") && len(s.Refs) == 0 && !s.ZeroRefs || scanAgain {
 			scannedForRefs = true
 			if s.Refs == nil {
 				s.Refs = make(map[string]*types.Ref)

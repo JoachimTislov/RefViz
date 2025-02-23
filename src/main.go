@@ -10,7 +10,6 @@ import (
 )
 
 /*
-TODO: Make the error handling return the gopls log instead of the error status message..
 TODO: implement libraries which finds references for typescript
 */
 

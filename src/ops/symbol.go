@@ -30,8 +30,10 @@ func getSymbols(filePath string, scanAgain bool) (*types.CacheEntry, error) {
 
 		output, err := lsp.RunGopls(projectPath(), symbols, filePath)
 		if err != nil {
-			return nil, fmt.Errorf("error when running gopls command: %s, err: %s", symbols, err)
+			cache.LogError(fmt.Sprintf("gopls %s %s", symbols, filePath))
+			return nil, nil
 		}
+
 		parseSymbols(string(output), &entry.Symbols)
 
 		entry.Name = filepath.Base(filePath)
@@ -97,6 +99,8 @@ func cacheEntry(cacheEntry *types.CacheEntry, path string) error {
 	cache.AddEntry(relPath, cacheEntry)
 	// updates the cache file
 	// writefile creates the cache file if it does not exist
+	cache.Mu.Lock()
+	defer cache.Mu.Unlock()
 	if err := marshalAndWriteToFile(cache, cachePath()); err != nil {
 		return err
 	}

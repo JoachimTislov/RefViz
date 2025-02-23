@@ -63,7 +63,6 @@ type Folder struct {
 	FolderPath string             `json:"folderPath"`
 	Refs       []SymbolRef        `json:"refs,omitempty"`
 	Files      []File             `json:"files,omitempty"`
-	Errors     []GoplsError       `json:"errors,omitempty"`
 	SubFolders map[string]*Folder `json:"subFolders,omitempty"`
 }
 

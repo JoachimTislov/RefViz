@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/JoachimTislov/RefViz/generics"
+	"github.com/JoachimTislov/RefViz/routines"
 	"github.com/manifoldco/promptui"
 )
 
@@ -23,11 +25,13 @@ func Scan(content *string, scanAgain *bool) (*time.Time, error) {
 	// Start the timer
 	// This is used to calculate the time it takes to scan the content
 	startNow := time.Now()
+
 	for _, path := range paths {
 		if err := processPath(path, *scanAgain); err != nil {
-			return nil, fmt.Errorf("error processing path: %s, err: %v", path, err)
+			return nil, fmt.Errorf("error processing path: %v", err)
 		}
 	}
+
 	return &startNow, nil
 }
 
@@ -36,18 +40,35 @@ func processPath(path string, scanAgain bool) error {
 	if !valid {
 		return fmt.Errorf("error: %s is not a valid entity", path)
 	}
+	paths := []string{path}
+	// If the path is a directory, get all the files in the directory
 	if e.IsDir() {
-		return filepath.WalkDir(path, func(path string, d os.DirEntry, err error) error {
-			if err != nil {
-				return fmt.Errorf("error walking through directory: %s, err: %v", path, err)
-			}
-			if !d.IsDir() && isValid(d.IsDir(), path) {
-				return getContent(path, scanAgain)
-			}
-			return nil
-		})
+		if err := getContentInDir(path, &paths); err != nil {
+			return fmt.Errorf("error getting content in directory: %s, err: %v", path, err)
+		}
 	}
-	return getContent(path, scanAgain)
+
+	var jobs []func() error
+	for _, path := range paths {
+		jobs = append(jobs, generics.JobTwoArgs(getContent, path, scanAgain))
+	}
+
+	// Start the work for 4 workers
+	routines.StartWork(4, jobs)
+
+	return nil
+}
+
+func getContentInDir(path string, paths *[]string) error {
+	return filepath.WalkDir(path, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return fmt.Errorf("error walking through directory: %s, err: %v", path, err)
+		}
+		if !d.IsDir() && isValid(d.IsDir(), path) {
+			*paths = append(*paths, path)
+		}
+		return nil
+	})
 }
 
 // findContent walks for the content root and attempts to find the content
@@ -58,16 +79,14 @@ func findContent(content *string) ([]string, error) {
 	projectRootPath := projectPath()
 	if *content == "" {
 		paths = append(paths, projectRootPath)
+	} else if filepath.IsAbs(*content) {
+		paths = append(paths, *content)
 	} else {
 		err = filepath.WalkDir(projectRootPath, func(path string, d fs.DirEntry, err error) error {
 			if err != nil {
 				return fmt.Errorf("error walking from path: %s, err: %v", path, err)
 			}
-			_, valid := checkIfValid(path)
-			if !valid {
-				return nil
-			}
-			if filepath.Base(path) == *content {
+			if filepath.Base(path) == *content && isValid(d.IsDir(), path) {
 				paths = append(paths, path)
 			}
 			return nil
@@ -79,6 +98,9 @@ func findContent(content *string) ([]string, error) {
 
 	if len(paths) == 0 {
 		log.Fatal("No content found")
+	}
+	if len(paths) == 1 {
+		return paths, nil
 	}
 
 	paths, err = askUser(paths, []string{})
@@ -97,14 +119,14 @@ func askUser(paths []string, selectedPaths []string) ([]string, error) {
 		fmt.Println("Selection failed:", err)
 		return nil, err
 	}
-	if value == scanAll || len(paths) == 1 {
-		return paths, nil
+	if value == exit {
+		log.Fatal("Cancelled by user")
 	}
 	if value == scanSelected {
 		return selectedPaths, nil
 	}
-	if value == exit {
-		log.Fatal("Cancelled by user")
+	if value == scanAll {
+		return paths, nil
 	}
 	// View createPrompt function to understand the logic
 	// Scan all is at index 0 and exit is at index len(paths) - 1

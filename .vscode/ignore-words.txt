@@ -1,6 +1,7 @@
 clangd
 jdtls
 labelloc
+lsprpc
 manifoldco
 myproject
 omnisharp
@@ -8,6 +9,7 @@ Plotly
 promptui
 Pyright
 rankdir
+sema
 testmodule
 testproject
 tintinweb

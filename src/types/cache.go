@@ -1,9 +1,12 @@
 package types
 
-import "sync"
+import (
+	"sync"
+)
 
 func NewCache() *Cache {
 	return &Cache{
+		Errors:        []string{},
 		UnusedSymbols: make(map[string]map[string]UnusedSymbol),
 		Entries:       make(map[string]CacheEntry),
 	}
@@ -23,6 +26,17 @@ func NewUnusedSymbol(dir, fileName, location string) UnusedSymbol {
 		FileName: fileName,
 		Location: location,
 	}
+}
+
+func (c *Cache) LogError(command string) {
+	c.Mu.Lock()
+	defer c.Mu.Unlock()
+	for _, e := range c.Errors {
+		if e == command {
+			return
+		}
+	}
+	c.Errors = append(c.Errors, command)
 }
 
 func (c *Cache) AddEntry(relPath string, entry *CacheEntry) {
@@ -53,6 +67,7 @@ func (c *Cache) AddUnusedSymbol(relPath string, name string, symbol UnusedSymbol
 }
 
 type Cache struct {
+	Errors        []string                           `json:"errors,omitempty"`
 	UnusedSymbols map[string]map[string]UnusedSymbol `json:"UnusedSymbols,omitempty"`
 	Entries       map[string]CacheEntry              `json:"entries,omitempty"`
 	Mu            sync.RWMutex                       `json:"mu,omitempty"`
