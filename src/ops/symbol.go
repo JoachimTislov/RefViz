@@ -11,27 +11,28 @@ import (
 	"github.com/JoachimTislov/RefViz/types"
 )
 
-func getSymbols(filePath string, scanAgain bool) (*types.CacheEntry, error) {
+func getSymbols(filePath string, scanAgain bool) (*types.CacheEntry, bool, error) {
 
 	f, err := os.Stat(filePath)
 	if err != nil {
-		return nil, fmt.Errorf("error getting file info: %s, err: %v", filePath, err)
+		return nil, false, fmt.Errorf("error getting file info: %s, err: %v", filePath, err)
 	}
 
 	entry, err := checkCache(filePath)
 	if err != nil {
-		return nil, fmt.Errorf("error checking cache: %s, err: %v", filePath, err)
+		return nil, false, fmt.Errorf("error checking cache: %s, err: %v", filePath, err)
 	}
 
 	modTime := f.ModTime().Unix()
-	if entry.ModTime != modTime || scanAgain {
+	shouldScan := entry.ModTime != modTime || scanAgain
+	if shouldScan {
 
 		log.Printf("\tScanning for symbols for file: %s\n", filePath)
 
 		output, err := lsp.RunGopls(projectPath(), symbols, filePath)
 		if err != nil {
 			cache.LogError(fmt.Sprintf("gopls %s %s", symbols, filePath))
-			return nil, nil
+			return nil, false, nil
 		}
 
 		parseSymbols(string(output), &entry.Symbols)
@@ -42,10 +43,10 @@ func getSymbols(filePath string, scanAgain bool) (*types.CacheEntry, error) {
 		log.Printf("\tCaching symbols for file: %s\n", filePath)
 
 		if err := cacheEntry(entry, filePath); err != nil {
-			return entry, fmt.Errorf("error caching symbols: %s, err: %v", filePath, err)
+			return entry, false, fmt.Errorf("error caching symbols: %s, err: %v", filePath, err)
 		}
 	}
-	return entry, nil
+	return entry, shouldScan, nil
 }
 
 func checkCache(filePath string) (*types.CacheEntry, error) {

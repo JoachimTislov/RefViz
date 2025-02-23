@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/JoachimTislov/RefViz/generics"
 	"github.com/JoachimTislov/RefViz/routines"
 	"github.com/manifoldco/promptui"
 )
@@ -17,25 +16,32 @@ import (
 // If the content is a directory, it scans all files in the directory
 // If scanForRefs is true, it scans for references
 // If the content is a file, it only scans the file
-func Scan(content *string, scanAgain *bool) (*time.Time, error) {
+func Scan(content *string, scanAgain *bool) error {
 	paths, err := findContent(content)
 	if err != nil {
-		return nil, fmt.Errorf("error finding content: %s, err: %v", *content, err)
+		return fmt.Errorf("error finding content: %s, err: %v", *content, err)
 	}
 	// Start the timer
 	// This is used to calculate the time it takes to scan the content
 	startNow := time.Now()
 
+	everythingIsUpToDate := true
 	for _, path := range paths {
-		if err := processPath(path, *scanAgain); err != nil {
-			return nil, fmt.Errorf("error processing path: %v", err)
+		if err := processPath(path, *scanAgain, &everythingIsUpToDate); err != nil {
+			return fmt.Errorf("error processing path: %v", err)
 		}
 	}
 
-	return &startNow, nil
+	if everythingIsUpToDate {
+		log.Println("Everything is up to date\n Use the -a flag to scan again")
+	} else {
+		log.Printf("Scan time: %v\n", time.Since(startNow))
+	}
+
+	return nil
 }
 
-func processPath(path string, scanAgain bool) error {
+func processPath(path string, scanAgain bool, everythingIsUpToDate *bool) error {
 	e, valid := checkIfValid(path)
 	if !valid {
 		return fmt.Errorf("error: %s is not a valid entity", path)
@@ -50,7 +56,7 @@ func processPath(path string, scanAgain bool) error {
 
 	var jobs []func() error
 	for _, path := range paths {
-		jobs = append(jobs, generics.JobTwoArgs(getContent, path, scanAgain))
+		jobs = append(jobs, getContent(path, scanAgain, everythingIsUpToDate))
 	}
 
 	// Start the work for 4 workers

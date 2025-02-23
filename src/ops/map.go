@@ -101,7 +101,7 @@ func addContentToMap(mapName, content, nodeName *string) error {
 }
 
 func addFileToFolder(absPath, relPath string, folder *types.Folder) error {
-	cacheEntry, err := getSymbols(absPath, false)
+	cacheEntry, _, err := getSymbols(absPath, false)
 	if err != nil {
 		return fmt.Errorf("error getting symbols: %v", err)
 	}

@@ -10,37 +10,39 @@ import (
 	"github.com/JoachimTislov/RefViz/types"
 )
 
-func getRefs(path string, symbol *types.Symbol, refs *map[string]*types.Ref) error {
-	pathToSymbol := fmt.Sprintf("%s:%s", path, symbol.Position.String())
-	relPath, err := filepath.Rel(projectPath(), path)
-	if err != nil {
-		return fmt.Errorf("error getting relative path: %s, err: %v", path, err)
-	}
+func getRefs(path string, symbol *types.Symbol, refs *map[string]*types.Ref) func() error {
+	return func() error {
+		pathToSymbol := fmt.Sprintf("%s:%s", path, symbol.Position.String())
+		relPath, err := filepath.Rel(projectPath(), path)
+		if err != nil {
+			return fmt.Errorf("error getting relative path: %s, err: %v", path, err)
+		}
 
-	log.Printf("\t\t Finding references for symbol: %s\n", symbol.Name)
+		log.Printf("\t\t Finding references for symbol: %s\n", symbol.Name)
 
-	output, err := lsp.RunGopls(projectPath(), references, pathToSymbol)
-	if err != nil {
-		cache.LogError(fmt.Sprintf("gopls %s %s", references, pathToSymbol))
-		symbol.ZeroRefs = true
+		output, err := lsp.RunGopls(projectPath(), references, pathToSymbol)
+		if err != nil {
+			cache.LogError(fmt.Sprintf("gopls %s %s", references, pathToSymbol))
+			symbol.ZeroRefs = true
+			return nil
+		}
+		// if there are no references, add the symbol to the unused symbols list
+		if string(output) == "" {
+			symbol.ZeroRefs = true
+			// Add to unused map in the cache
+			cache.AddUnusedSymbol(relPath, symbol.Name, types.NewUnusedSymbol(
+				filepath.Base(filepath.Dir(path)),
+				filepath.Base(path),
+				pathToSymbol,
+			))
+		}
+
+		if err := parseRefs(string(output), refs); err != nil {
+			return fmt.Errorf("error parsing references: %s, err: %v", pathToSymbol, err)
+		}
+
 		return nil
 	}
-	// if there are no references, add the symbol to the unused symbols list
-	if string(output) == "" {
-		symbol.ZeroRefs = true
-		// Add to unused map in the cache
-		cache.AddUnusedSymbol(relPath, symbol.Name, types.NewUnusedSymbol(
-			filepath.Base(filepath.Dir(path)),
-			filepath.Base(path),
-			pathToSymbol,
-		))
-	}
-
-	if err := parseRefs(string(output), refs); err != nil {
-		return fmt.Errorf("error parsing references: %s, err: %v", pathToSymbol, err)
-	}
-
-	return nil
 }
 
 func parseRefs(output string, refs *map[string]*types.Ref) error {
@@ -79,7 +81,7 @@ func parseRefs(output string, refs *map[string]*types.Ref) error {
 
 // getRelatedMethod finds the closest method above the reference
 func getRelatedMethod(path string, refLinePos string, parentSymbol *types.Symbol) error {
-	c, err := getSymbols(path, false)
+	c, _, err := getSymbols(path, false)
 	if err != nil {
 		return fmt.Errorf("error getting symbols: %s, err: %v", path, err)
 	}
