@@ -54,7 +54,7 @@ func processPath(path string, scanAgain bool) error {
 	}
 
 	// Start the work for 4 workers
-	routines.StartWork(4, jobs)
+	routines.StartWork(3, jobs)
 
 	return nil
 }

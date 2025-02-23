@@ -6,8 +6,9 @@ import (
 	"log"
 	"os"
 	"strings"
-	"sync"
 
+	"github.com/JoachimTislov/RefViz/generics"
+	"github.com/JoachimTislov/RefViz/routines"
 	"github.com/JoachimTislov/RefViz/types"
 )
 
@@ -32,30 +33,17 @@ func getContent(path string, scanAgain bool) error {
 	}
 
 	var scannedForRefs bool
-	var wg sync.WaitGroup
-	ch := make(chan error, len(c.Symbols))
-
-	// Get references for each symbol
+	var jobs []func() error
 	for _, s := range c.Symbols {
-		if !strings.HasPrefix(s.Name, "Test") && len(s.Refs) == 0 && !s.ZeroRefs || scanAgain {
+		if !strings.HasPrefix(s.Name, "Test") && s.Name != "init" && len(s.Refs) == 0 && !s.ZeroRefs || scanAgain {
 			scannedForRefs = true
 			if s.Refs == nil {
 				s.Refs = make(map[string]*types.Ref)
 			}
-			wg.Add(1)
-			go getRefs(path, s, &s.Refs, ch, &wg)
+			jobs = append(jobs, generics.JobThreeArgs(getRefs, path, s, &s.Refs))
 		}
 	}
-	go func() {
-		wg.Wait()
-		close(ch)
-	}()
-
-	for err := range ch {
-		if err != nil {
-			return fmt.Errorf("error getting references: %v", err)
-		}
-	}
+	routines.StartWork(5, jobs)
 
 	if scannedForRefs {
 		log.Printf("Final caching for path: %s\n", path)

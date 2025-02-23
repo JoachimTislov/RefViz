@@ -5,19 +5,16 @@ import (
 	"log"
 	"path/filepath"
 	"strings"
-	"sync"
 
 	"github.com/JoachimTislov/RefViz/lsp"
 	"github.com/JoachimTislov/RefViz/types"
 )
 
-func getRefs(path string, symbol *types.Symbol, refs *map[string]*types.Ref, ch chan<- error, wg *sync.WaitGroup) {
-	defer wg.Done()
-
+func getRefs(path string, symbol *types.Symbol, refs *map[string]*types.Ref) error {
 	pathToSymbol := fmt.Sprintf("%s:%s", path, symbol.Position.String())
 	relPath, err := filepath.Rel(projectPath(), path)
 	if err != nil {
-		ch <- fmt.Errorf("error getting relative path: %s, err: %v", path, err)
+		return fmt.Errorf("error getting relative path: %s, err: %v", path, err)
 	}
 
 	log.Printf("\t\t Finding references for symbol: %s\n", symbol.Name)
@@ -26,7 +23,7 @@ func getRefs(path string, symbol *types.Symbol, refs *map[string]*types.Ref, ch 
 	if err != nil {
 		cache.LogError(fmt.Sprintf("gopls %s %s", references, pathToSymbol))
 		symbol.ZeroRefs = true
-		ch <- nil
+		return nil
 	}
 	// if there are no references, add the symbol to the unused symbols list
 	if string(output) == "" {
@@ -40,8 +37,10 @@ func getRefs(path string, symbol *types.Symbol, refs *map[string]*types.Ref, ch 
 	}
 
 	if err := parseRefs(string(output), refs); err != nil {
-		ch <- fmt.Errorf("error parsing references: %s, err: %v", pathToSymbol, err)
+		return fmt.Errorf("error parsing references: %s, err: %v", pathToSymbol, err)
 	}
+
+	return nil
 }
 
 func parseRefs(output string, refs *map[string]*types.Ref) error {
