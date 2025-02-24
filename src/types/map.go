@@ -20,7 +20,33 @@ func NewFolder(path string) *Folder {
 	return &Folder{
 		FolderName: filepath.Base(path),
 		FolderPath: path,
-		SubFolders: map[string]*Folder{},
+		SubFolders: make(map[string]*Folder),
+	}
+}
+
+func newSubFolderMap() map[string]*Folder {
+	return make(map[string]*Folder)
+}
+
+func (f *File) AddSymbol(symbol Symbol) {
+	f.Symbols = append(f.Symbols, createSymbol(symbol.Name, symbol.Kind, symbol.Refs))
+}
+
+func createSymbol(name, kind string, refs map[string]*Ref) symbol {
+	var symbolRefs []SymbolRef
+	for _, ref := range refs {
+		symbolRefs = append(symbolRefs, SymbolRef{
+			Definition: Symbol{
+				Name: name,
+				Kind: kind,
+			},
+			Ref: *ref,
+		})
+	}
+	return symbol{
+		Name: name,
+		Kind: kind,
+		Refs: symbolRefs,
 	}
 }
 
@@ -30,13 +56,6 @@ func (f *Folder) AddFile(file File) {
 
 func (f *Folder) AddRef(ref SymbolRef) {
 	f.Refs = append(f.Refs, ref)
-}
-
-func (f *Folder) MoveToSubFolder(name, path string) {
-	f = f.SubFolders[name]
-	if f == nil {
-		f = NewFolder(path)
-	}
 }
 
 func NewFile(name string, path string) File {
@@ -70,7 +89,13 @@ type File struct {
 	Name    string      `json:"name"`
 	Path    string      `json:"path"`
 	Refs    []SymbolRef `json:"refs,omitempty"`
-	Symbols []Symbol    `json:"symbols,omitempty"`
+	Symbols []symbol    `json:"symbols,omitempty"`
+}
+
+type symbol struct {
+	Name string `json:"name"`
+	Kind string `json:"kind"`
+	Refs []SymbolRef
 }
 
 type SymbolRef struct {

@@ -15,6 +15,7 @@ const (
 	exit           = "Cancel"
 	scanSelected   = "Scan selected content"
 	yes            = "y"
+	Entities       = "map, node"
 	// customPath is used to adjust the root path of the project
 	// This only for development, TODO: remove later
 	customPath = "" // /sample-code/quickfeed

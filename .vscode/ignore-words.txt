@@ -12,6 +12,7 @@ rankdir
 sema
 testmodule
 testproject
+testutil
 tintinweb
 tmpl
 toplevel

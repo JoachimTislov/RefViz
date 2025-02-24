@@ -83,11 +83,12 @@ func findContent(content *string) ([]string, error) {
 	var paths []string
 	var err error
 	projectRootPath := projectPath()
-	if *content == "" {
+	switch {
+	case *content == "":
 		paths = append(paths, projectRootPath)
-	} else if filepath.IsAbs(*content) {
+	case filepath.IsAbs(*content):
 		paths = append(paths, *content)
-	} else {
+	default:
 		err = filepath.WalkDir(projectRootPath, func(path string, d fs.DirEntry, err error) error {
 			if err != nil {
 				return fmt.Errorf("error walking from path: %s, err: %v", path, err)
@@ -109,10 +110,10 @@ func findContent(content *string) ([]string, error) {
 		return paths, nil
 	}
 
-	paths, err = askUser(paths, []string{})
+	/*paths, err = askUser(paths, []string{})
 	if err != nil {
 		return nil, fmt.Errorf("error asking user: %v", err)
-	}
+	}*/
 
 	return paths, nil
 }

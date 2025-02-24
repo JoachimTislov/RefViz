@@ -41,7 +41,12 @@ func getContent(path string, scanAgain bool, everythingIsUpToDate *bool) func() 
 				jobs = append(jobs, getRefs(path, s, &s.Refs))
 			}
 		}
-		routines.StartWork(5, jobs)
+		var workers int
+		l := len(jobs)
+		if l < 3 {
+			workers = l
+		}
+		routines.StartWork(workers, jobs)
 
 		if scannedForSymbols {
 			if scannedForRefs {

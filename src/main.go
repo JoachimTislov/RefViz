@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 
 	"github.com/JoachimTislov/RefViz/mappers"
@@ -20,15 +21,21 @@ func init() {
 
 func main() {
 	graphviz := flag.String("graphviz", "", "generate graphviz file with the given map")
-	list := flag.Bool("list", false, "list all maps")
-	create := flag.String("c", "", "create map")
-	delete := flag.String("d", "", "delete map")
+	lm := flag.Bool("lm", false, "list maps")
+	ln := flag.Bool("ln", false, "list nodes")
+	create := flag.Bool("c", false, fmt.Sprintf("create (%s)", ops.Entities))
+	delete := flag.Bool("d", false, fmt.Sprintf("delete (%s)", ops.Entities))
+	mapName := flag.String("m", "", "map name")
+	nodeName := flag.String("n", "", "node name")
 	scan := flag.Bool("scan", false, "scan the project for content")
+	add := flag.Bool("add", false, "add content to map")
 	content := flag.String("content", "", "content to scan, file or folder")
-	scanAgain := flag.Bool("a", false, "force scan, ignore cache")
+	scanAgain := flag.Bool("f", false, "force scan, ignore cache")
 	flag.Parse()
 
-	checkOps(list, create, delete)
+	// Determine if map operations are to be performed
+	ops.CheckMapOps(lm, ln, create, add, delete, mapName, nodeName, content)
+
 	if *scan {
 		if err := ops.Scan(content, scanAgain); err != nil {
 			log.Fatalf("Error scanning content: %v\n", err)
@@ -40,25 +47,6 @@ func main() {
 		// Extension: tintinweb.graphviz-interactive-preview, can display the graph in vscode
 		if err := mappers.CreateGraphvizFile(graphviz); err != nil {
 			log.Fatalf("error creating graphviz map: %v", err)
-		}
-	}
-}
-
-func checkOps(list *bool, create, delete *string) {
-	operations := []struct {
-		Condition bool
-		Action    func() error
-		Msg       string
-	}{
-		{*list, ops.ListMaps, "error listing maps"},
-		{*create != "", func() error { return ops.CreateMap(create) }, "error creating map"},
-		{*delete != "", func() error { return ops.DeleteMap(delete) }, "error deleting map"},
-	}
-	for _, op := range operations {
-		if op.Condition {
-			if err := op.Action(); err != nil {
-				log.Fatalf("%s: %v\n", op.Msg, err)
-			}
 		}
 	}
 }

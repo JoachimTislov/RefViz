@@ -35,7 +35,7 @@ func loadRootPath() error {
 
 // initFolder initializes the project folder if it does not exist
 func initFolder() error {
-	folderPaths := []string{getTempFolderPath(), mapPath()}
+	folderPaths := []string{getTempFolderPath(), mapPath(), graphvizPath()}
 	for _, p := range folderPaths {
 		if !exists(p) {
 			if err := os.Mkdir(p, 0755); err != nil {

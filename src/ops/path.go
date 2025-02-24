@@ -13,7 +13,6 @@ func getMapPath(name string) string {
 	if !strings.Contains(name, ".") {
 		name = fmt.Sprintf("%s.json", name)
 	}
-	fmt.Print(name)
 	return filepath.Join(mapPath(), name)
 }
 
@@ -50,8 +49,12 @@ func mapPath() string {
 	return getRootPath(tmp("maps"))
 }
 
+func graphvizPath() string {
+	return getRootPath(tmp("graphviz"))
+}
+
 func DotFilePath(mapName *string) string {
-	return getRootPath(filepath.Join("graphviz", fmt.Sprintf("%s.dot", *mapName)))
+	return filepath.Join(graphvizPath(), fmt.Sprintf("%s.dot", *mapName))
 }
 
 // getProjectRoot returns the root directory of the users project

@@ -21,7 +21,12 @@ func CreateGraphvizFile(mapName *string) error {
 		return fmt.Errorf("error creating template: %v", err)
 	}
 
-	err = t.Execute(file, mapName)
+	m, err := ops.LoadMap(mapName)
+	if err != nil {
+		return fmt.Errorf("error loading map: %v", err)
+	}
+
+	err = t.Execute(file, m)
 	if err != nil {
 		return fmt.Errorf("error executing template: %v", err)
 	}
@@ -43,6 +48,10 @@ func createTemplate(mapName *string) (*template.Template, error) {
 		"arr": func(els ...any) any { // https://dev.to/moniquelive/passing-multiple-arguments-to-golang-templates-16h8
 			return els
 		},
+		"debug": func(msg any) error {
+			fmt.Println(msg)
+			return nil
+		},
 	}
 	return template.New(*mapName).Funcs(funcMap).Parse(tmpl)
 }
@@ -50,39 +59,40 @@ func createTemplate(mapName *string) (*template.Template, error) {
 // https://golang.org/pkg/text/template/
 // recursive template with nested definitions
 // Whitespace control: https://golang.org/pkg/text/template/#hdr-Text_and_spaces, its a bit tricky
-const tmpl = `
-{{- range $folderName, $folder := .Folder}}
-digraph {{$folderName}} {
-	rankdir=TB;
-	{{- template "subgraph" $folder -}}
-}
+const tmpl = `digraph {{.Name}} {
+{{- range $name, $node := .Nodes}}
+	subgraph {{$name}} {
+		rankdir=TB;
+		{{- template "subgraph" $node.RootFolder }}
+	}
 {{- end}}
 	{{- define "refs"}}
-		{{- $refs := index . 0}}
+		{{- $symbolRefs := index . 0}}
 		{{- $folderName := index . 1}}
-		{{- range $ref := $refs}}
-			{{$folderName}}_{{trimSpace $ref.Source.MethodName}} -> {{$folderName}}_{{trimSpace $ref.Info.MethodName}};
+		{{- range $symbolRef := $symbolRefs}}
+				{{$folderName}}_{{trimSpace $symbolRef.Definition.Name}} -> {{$folderName}}_{{trimSpace $symbolRef.Ref.MethodName}};
 		{{- end}}
 	{{- end}}
 {{- define "subgraph"}}
-{{- range $folderName, $subfolder := .SubFolders.Folder}}
-	subgraph cluster_{{replace $folderName "-" "_"}} {
-		label = "{{$folderName}} (folder)";
-		rankdir=TB;
-		{{- range $file := $subfolder.Files}}
-		subgraph cluster_{{replace (replace $file.Name "." "_") "-" "_"}} {
-			label = "{{$file.Name}}";
-			labelloc="t";
+{{- range $folderName, $subfolder := .SubFolders}}
+		subgraph cluster_{{replace $folderName "-" "_"}} {
+			label = "{{$folderName}} (folder)";
 			rankdir=TB;
-			{{- range $symbol := $file.Symbols}}
-			{{$folderName}}_{{trimSpace $symbol.Name}} [label = "{{trimSpace $symbol.Name}}, {{$symbol.Kind}}";shape = box;];
-				{{- template "refs" (arr $symbol.Refs $folderName) -}}
+			{{- range $file := $subfolder.Files}}
+			subgraph cluster_{{replace (replace $file.Name "." "_") "-" "_"}} {
+				label = "{{$file.Name}}";
+				labelloc="t";
+				rankdir=TB;
+				{{- range $symbol := $file.Symbols}}
+				{{$folderName}}_{{trimSpace $symbol.Name}} [label = "{{trimSpace $symbol.Name}}, {{$symbol.Kind}}";shape = box;];
+					{{- template "refs" (arr $symbol.Refs $folderName) -}}
+				{{- end}}
+			}
+			{{- template "refs" (arr $file.Refs $folderName) -}}
 			{{- end}}
 		}
-		{{- template "refs" (arr $file.Refs $folderName) -}}
-		{{- end}}
-	}
-	{{- template "refs" (arr $subfolder.Refs $folderName) -}}
-	{{- template "subgraph" $subfolder -}}
+		{{- template "refs" (arr $subfolder.Refs $folderName) -}}
+		{{- template "subgraph" $subfolder }}
 {{- end}}
-{{- end}}`
+{{- end}}
+}`
