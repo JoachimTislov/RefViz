@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os/exec"
 
 	"github.com/JoachimTislov/RefViz/mappers"
 	"github.com/JoachimTislov/RefViz/ops"
@@ -30,16 +31,24 @@ func main() {
 	scan := flag.Bool("scan", false, "scan the project for content")
 	add := flag.Bool("add", false, "add content to map")
 	content := flag.String("content", "", "content to scan, file or folder")
-	scanAgain := flag.Bool("f", false, "force scan, ignore cache")
+	display := flag.Bool("display", false, "display the map")
+	force := flag.Bool("f", false, "force scans or updates, ignores cache")
+	ask := flag.Bool("a", false, "select content to add to map")
 	flag.Parse()
 
 	// Determine if map operations are to be performed
-	ops.CheckMapOps(lm, ln, create, add, delete, mapName, nodeName, content)
+	ops.CheckMapOps(lm, ln, create, add, delete, mapName, nodeName, content, force, ask)
 
 	if *scan {
-		if err := ops.Scan(content, scanAgain); err != nil {
+		if err := ops.Scan(content, force, ask); err != nil {
 			log.Fatalf("Error scanning content: %v\n", err)
 		}
+	}
+	// Update the if graphviz flag is set or map name is provided and user wants to display the map
+	if *mapName != "" && *display {
+		graphviz = mapName
+	} else if *mapName == "" && *display {
+		log.Fatal("Please provide a map name to display")
 	}
 	if *graphviz != "" {
 		// Following can be written with any graphing library
@@ -47,6 +56,11 @@ func main() {
 		// Extension: tintinweb.graphviz-interactive-preview, can display the graph in vscode
 		if err := mappers.CreateGraphvizFile(graphviz); err != nil {
 			log.Fatalf("error creating graphviz map: %v", err)
+		}
+
+		cmd := exec.Command("xdot", ops.DotFilePath(graphviz))
+		if err := cmd.Start(); err != nil {
+			log.Fatalf("Please install xdot with: sudo apt-get install xdot, its used to display the graph")
 		}
 	}
 }

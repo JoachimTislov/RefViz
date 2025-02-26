@@ -61,8 +61,8 @@ func parseRefs(output string, refs *map[string]*types.Ref) error {
 		fileName := filepath.Base(path)
 		folderName := filepath.Base(filepath.Dir(path))
 
-		parentSymbol := types.Symbol{}
-		if err := getRelatedMethod(path, LinePos, &parentSymbol); err != nil {
+		parentSymbol, err := getRelatedMethod(path, LinePos)
+		if err != nil {
 			return fmt.Errorf("error getting related method: %s, err: %v", path, err)
 		}
 		key, err := filepath.Rel(projectPath(), path)
@@ -70,7 +70,7 @@ func parseRefs(output string, refs *map[string]*types.Ref) error {
 			return fmt.Errorf("error getting relative path: %s, err: %v", path, err)
 		}
 		(*refs)[key] = &types.Ref{
-			Path:       refRelPath,
+			Path:       fmt.Sprintf("%s:%s:%s", refRelPath, args[1], args[2]),
 			FolderName: folderName,
 			FileName:   fileName,
 			MethodName: parentSymbol.Name,
@@ -80,26 +80,30 @@ func parseRefs(output string, refs *map[string]*types.Ref) error {
 }
 
 // getRelatedMethod finds the closest method above the reference
-func getRelatedMethod(path string, refLinePos string, parentSymbol *types.Symbol) error {
+func getRelatedMethod(path string, refLinePos string) (*types.Symbol, error) {
 	c, _, err := getSymbols(path, false)
 	if err != nil {
-		return fmt.Errorf("error getting symbols: %s, err: %v", path, err)
+		return nil, fmt.Errorf("error getting symbols: %s, err: %v", path, err)
 	}
-	if len(symbols) == 0 {
-		return fmt.Errorf("no symbols found in %s", path)
+	if len(c.Symbols) == 0 {
+		return nil, fmt.Errorf("zero symbols found in %s", path)
 	}
-	parentSymbol.Position.Line = "0"
+	var parentSymbol *types.Symbol
 	// loop through potential parent symbols
 	for _, s := range c.Symbols {
 		// skip if the symbol is not a function
 		if s.Kind != function && s.Kind != method {
 			continue
 		}
+		if parentSymbol == nil {
+			parentSymbol = s
+			continue
+		}
 		isFurtherDown := parentSymbol.Position.Line < s.Position.Line
 		isAboveRef := s.Position.Line < refLinePos
 		if isFurtherDown && isAboveRef {
-			*parentSymbol = *s
+			parentSymbol = s
 		}
 	}
-	return nil
+	return parentSymbol, nil
 }

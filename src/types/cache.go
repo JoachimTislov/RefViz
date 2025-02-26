@@ -74,28 +74,29 @@ type Cache struct {
 }
 
 type UnusedSymbol struct {
-	Dir      string `json:"dir"`
-	FileName string `json:"fileName"`
-	Location string `json:"location"`
+	Dir      string `json:"dir,omitempty"`
+	FileName string `json:"fileName,omitempty"`
+	Location string `json:"location,omitempty"`
 }
 
 type CacheEntry struct {
-	Name    string             `json:"name"`
-	ModTime int64              `json:"modTime"`
-	Symbols map[string]*Symbol `json:"symbols"`
+	Name    string             `json:"name,omitempty"`
+	ModTime int64              `json:"modTime,omitempty"`
+	Symbols map[string]*Symbol `json:"symbols,omitempty"`
 }
 
 type Symbol struct {
-	Name     string          `json:"name"`
-	Kind     string          `json:"kind"`
-	Position Position        `json:"position"`
+	Name     string          `json:"name,omitempty"`
+	Kind     string          `json:"kind,omitempty"`
+	Position Position        `json:"position,omitempty"`
+	Path     string          `json:"path,omitempty"`
 	Refs     map[string]*Ref `json:"refs,omitempty"`
 	ZeroRefs bool            `json:"zeroRefs,omitempty"` // if true, the symbol has no references
 }
 
 type Ref struct {
-	Path       string `json:"path"`
-	FolderName string `json:"folderName"`
-	FileName   string `json:"fileName"`
-	MethodName string `json:"methodName"`
+	Path       string `json:"path,omitempty"`
+	FolderName string `json:"folderName,omitempty"`
+	FileName   string `json:"fileName,omitempty"`
+	MethodName string `json:"methodName,omitempty"`
 }

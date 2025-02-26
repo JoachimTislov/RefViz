@@ -12,14 +12,14 @@ import (
 	"github.com/JoachimTislov/RefViz/types"
 )
 
-func CheckMapOps(lm, ln, create, add, delete *bool, mapName *string, nodeName *string, content *string) {
+func CheckMapOps(lm, ln, create, add, delete *bool, mapName *string, nodeName *string, content *string, force, ask *bool) {
 
 	operations := types.Operation{
 		{Condition: *lm, Action: listMaps, Msg: "error listing maps"},
 		{Condition: *ln, Action: func() error { return listNodes(mapName) }, Msg: "error listing nodes"},
 		{Condition: *create, Action: func() error { return createMap(mapName) }, Msg: "error creating map"},
 		{Condition: *delete, Action: func() error { return deleteMap(mapName) }, Msg: "error deleting map"},
-		{Condition: *add, Action: func() error { return addContentToMap(mapName, content, nodeName) }, Msg: "error adding content to map"},
+		{Condition: *add, Action: func() error { return addContentToMap(mapName, content, nodeName, force, ask) }, Msg: "error adding content to map"},
 		{Condition: *nodeName != "" && !*add, Action: func() error { return addNodeToMap(mapName, nodeName) }, Msg: "error adding node to map"},
 	}
 
@@ -56,8 +56,7 @@ func createMap(name *string) error {
 	return nil
 }
 
-func addContentToMap(mapName, content, nodeName *string) error {
-	projectPath := projectPath()
+func addContentToMap(mapName, content, nodeName *string, force, ask *bool) error {
 
 	if *mapName == "" || *content == "" {
 		log.Fatal("Please provide a map name and content to add")
@@ -68,22 +67,21 @@ func addContentToMap(mapName, content, nodeName *string) error {
 		return err
 	}
 
-	if err := determineNodeName(nodeName, rMap.Nodes); err != nil {
+	if err := determineNodeName(nodeName, rMap.Nodes, mapName); err != nil {
 		return fmt.Errorf("error determining node name: %v", err)
 	}
-	node, ok := rMap.Nodes[*nodeName]
-	if !ok {
-		node = types.NewNode(*nodeName, projectPath)
-		rMap.Nodes[*nodeName] = node
+	node, err := rMap.GetOrCreateNode(nodeName, projectPath())
+	if err != nil {
+		return fmt.Errorf("error getting or creating node: %v", err)
 	}
 
-	paths, err := findContent(content)
+	paths, err := findContent(content, ask)
 	if err != nil {
 		return err
 	}
 
 	for _, p := range paths {
-		if err := addPath(p, projectPath, node.RootFolder); err != nil {
+		if err := addPath(p, node.RootFolder, force); err != nil {
 			return fmt.Errorf("error adding path: %v", err)
 		}
 	}
@@ -94,7 +92,7 @@ func addContentToMap(mapName, content, nodeName *string) error {
 	return nil
 }
 
-func addPath(p, projectPath string, rootFolder *types.Folder) error {
+func addPath(p string, rootFolder *types.Folder, force *bool) error {
 	e, err := os.Stat(p)
 	if err != nil {
 		return fmt.Errorf("error analyzing path: %s, err: %v", p, err)
@@ -110,11 +108,7 @@ func addPath(p, projectPath string, rootFolder *types.Folder) error {
 	}
 
 	for _, p := range subPaths {
-		relPath, err := filepath.Rel(projectPath, p)
-		if err != nil {
-			return fmt.Errorf("error getting relative path: %s, err: %v", p, err)
-		}
-		if err := addFileToFolder(p, relPath, rootFolder); err != nil {
+		if err := addFileToFolder(p, rootFolder, force); err != nil {
 			return fmt.Errorf("error adding file to folder: %v", err)
 		}
 	}
@@ -133,13 +127,12 @@ func retrieveContentInDir(p string, paths *[]string) error {
 	})
 }
 
-func determineNodeName(nodeName *string, nodes map[string]*types.Node) error {
+func determineNodeName(nodeName *string, nodes map[string]*types.Node, mapName *string) error {
 	if *nodeName == "" {
 		l := len(nodes)
 		switch l {
 		case 0:
-			log.Println("Zero nodes found in map")
-			log.Println("Please provide a node name")
+			*nodeName = "node_" + *mapName
 			break
 		case 1:
 			for n := range nodes {
@@ -158,80 +151,30 @@ func determineNodeName(nodeName *string, nodes map[string]*types.Node) error {
 	return nil
 }
 
-func addFileToFolder(absPath, relPath string, folder *types.Folder) error {
-	folder = getRelatedFolder(relPath, folder)
+func addFileToFolder(absPath string, folder *types.Folder, force *bool) error {
+
+	folder, err := folder.GetRelatedFolder(absPath, projectPath())
+	if err != nil {
+		return fmt.Errorf("error updating to related folder: %v", err)
+	}
+	// honestly, just stupid, but it works
+	// result of making a function specific for one case....
+	getContent(absPath, *force, nil)()
 
 	cacheEntry, _, err := getSymbols(absPath, false)
 	if err != nil {
 		return fmt.Errorf("error getting symbols: %v", err)
 	}
+	////
 
-	folderName, fileName := filepath.Dir(relPath), filepath.Base(relPath)
-	file := types.NewFile(fileName, folderName)
-	for _, s := range cacheEntry.Symbols {
-		file.AddSymbol(sortRefsIntoHierarchy(*s, &folder.Refs, &file.Refs, folderName, fileName))
+	folderPath, fileName, err := getFolderPathAndFileName(absPath)
+	if err != nil {
+		return fmt.Errorf("error getting folder path and file name: %v", err)
 	}
-	folder.AddFile(file)
+	file := folder.GetFile(&fileName, &folderPath)
+	file.AddSymbols(&folder.Refs, &cacheEntry.Symbols, &folderPath, &fileName)
+	folder.AddFile(file, *force)
 	return nil
-}
-
-// sortRefsIntoHierarchy loops through the references of a symbol and moves them to the appropriate folder or file
-// based on the path of the reference
-// refs are removed from the symbol after they are moved
-func sortRefsIntoHierarchy(s types.Symbol, folderRefs, fileRefs *[]types.SymbolRef, folderPath, fileName string) types.Symbol {
-	refsToRemove := []string{}
-	for key, r := range s.Refs {
-		sRef := types.SymbolRef{
-			Definition: s,
-			Ref:        *r,
-		}
-		folderPageDiffer := filepath.Dir(r.Path) != folderPath
-		fileNameDiffer := filepath.Base(r.Path) != fileName
-
-		// if the reference is in a different folder or page, move it to the appropriate folder or file
-		// and remove it from the symbol
-		if folderPageDiffer || fileNameDiffer {
-			refsToRemove = append(refsToRemove, key)
-
-			// if the reference is in a different folder, move it to the folder
-			if folderPageDiffer {
-				*folderRefs = append(*folderRefs, sRef)
-			}
-			// if the reference is in a different file, move it to the file
-			if fileNameDiffer {
-				*fileRefs = append(*fileRefs, sRef)
-			}
-		}
-	}
-	for _, key := range refsToRemove {
-		delete(s.Refs, key)
-	}
-	return s
-}
-
-// getRelatedFolder returns the folder related to the path
-// recursively keys through the recursive folder data structure
-// to find the folder related to the path
-func getRelatedFolder(relPath string, folder *types.Folder) *types.Folder {
-	if folder == nil {
-		folder = types.NewFolder(relPath)
-	}
-
-	dirs := strings.Split(filepath.Dir(relPath), string(filepath.Separator))
-	projectPath := projectPath()
-	for _, d := range dirs {
-		projectPath = filepath.Join(projectPath, d)
-
-		if folder.SubFolders == nil {
-			folder.SubFolders = make(map[string]*types.Folder)
-		}
-
-		if _, exists := folder.SubFolders[d]; !exists {
-			folder.SubFolders[d] = types.NewFolder(projectPath)
-		}
-		folder = folder.SubFolders[d]
-	}
-	return folder
 }
 
 func addNodeToMap(mapName, nodeName *string) error {
@@ -244,7 +187,7 @@ func addNodeToMap(mapName, nodeName *string) error {
 	if err != nil {
 		return err
 	}
-	rMap.Nodes[*nodeName] = types.NewNode(*nodeName, projectPath())
+	rMap.AddNode(nodeName, projectPath())
 
 	if err := marshalAndWriteToFile(rMap, getMapPath(rMap.Name)); err != nil {
 		return fmt.Errorf("error writing to file: %v", err)

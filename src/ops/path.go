@@ -9,6 +9,10 @@ import (
 	"strings"
 )
 
+func GetMapPath(name string) string {
+	return getMapPath(name)
+}
+
 func getMapPath(name string) string {
 	if !strings.Contains(name, ".") {
 		name = fmt.Sprintf("%s.json", name)

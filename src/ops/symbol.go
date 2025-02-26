@@ -35,7 +35,7 @@ func getSymbols(filePath string, scanAgain bool) (*types.CacheEntry, bool, error
 			return nil, false, nil
 		}
 
-		parseSymbols(string(output), &entry.Symbols)
+		parseSymbols(string(output), filePath, &entry.Symbols)
 
 		entry.Name = filepath.Base(filePath)
 		entry.ModTime = modTime
@@ -58,7 +58,7 @@ func checkCache(filePath string) (*types.CacheEntry, error) {
 }
 
 // parses the output of the gopls symbols command and extracts the name, kind, and position of each symbol
-func parseSymbols(output string, s *map[string]*types.Symbol) {
+func parseSymbols(output, filePath string, s *map[string]*types.Symbol) {
 	// retrieve values from last, to handle this specific case: uint64 | string Field 27:2-27:17
 	// the usual case is: uint64 Field 27:2-27:17, name, kind, position
 	for _, line := range strings.Split(output, "\n") {
@@ -77,6 +77,7 @@ func parseSymbols(output string, s *map[string]*types.Symbol) {
 		(*s)[name] = &types.Symbol{
 			Name:     name,
 			Kind:     kind,
+			Path:     fmt.Sprintf("%s:%s", filePath, args[l-1]),
 			Position: createPosition(args[l-1]),
 		}
 	}

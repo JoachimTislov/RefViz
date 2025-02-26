@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/JoachimTislov/RefViz/routines"
@@ -21,6 +22,14 @@ func getFile(filePath string, v any) error {
 		return fmt.Errorf("unmarshaling error: %s", err)
 	}
 	return nil
+}
+
+func getFolderPathAndFileName(absPath string) (string, string, error) {
+	relPath, err := filepath.Rel(projectPath(), absPath)
+	if err != nil {
+		return "", "", fmt.Errorf("error getting relative path: %s, err: %v", absPath, err)
+	}
+	return filepath.Dir(relPath), filepath.Base(relPath), nil
 }
 
 func getContent(path string, scanAgain bool, everythingIsUpToDate *bool) func() error {
@@ -51,7 +60,9 @@ func getContent(path string, scanAgain bool, everythingIsUpToDate *bool) func() 
 		if scannedForSymbols {
 			if scannedForRefs {
 				log.Println("Found content for path: ", path)
-				*everythingIsUpToDate = false
+				if everythingIsUpToDate != nil {
+					*everythingIsUpToDate = false
+				}
 			} else {
 				log.Println("No references to scan for in path: ", path)
 			}

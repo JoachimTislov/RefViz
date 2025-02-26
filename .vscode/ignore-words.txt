@@ -1,3 +1,4 @@
+chzyer
 clangd
 jdtls
 labelloc
@@ -10,6 +11,7 @@ promptui
 Pyright
 rankdir
 sema
+Subfolders
 testmodule
 testproject
 testutil
@@ -18,3 +20,4 @@ tmpl
 toplevel
 unmarshals
 Worktree
+xdot

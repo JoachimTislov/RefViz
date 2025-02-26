@@ -10,6 +10,11 @@ import (
 )
 
 func CreateGraphvizFile(mapName *string) error {
+	m, err := ops.LoadMap(mapName)
+	if err != nil {
+		return fmt.Errorf("error loading map: %v", err)
+	}
+
 	file, err := createDotFile(mapName)
 	if err != nil {
 		return fmt.Errorf("error creating dot file: %v", err)
@@ -19,11 +24,6 @@ func CreateGraphvizFile(mapName *string) error {
 	t, err := createTemplate(mapName)
 	if err != nil {
 		return fmt.Errorf("error creating template: %v", err)
-	}
-
-	m, err := ops.LoadMap(mapName)
-	if err != nil {
-		return fmt.Errorf("error loading map: %v", err)
 	}
 
 	err = t.Execute(file, m)
@@ -63,22 +63,30 @@ const tmpl = `digraph {{.Name}} {
 {{- range $name, $node := .Nodes}}
 	subgraph {{$name}} {
 		rankdir=TB;
-		{{- template "subgraph" $node.RootFolder }}
+		{{- template "graph" $node.RootFolder }}
 	}
 {{- end}}
 	{{- define "refs"}}
 		{{- $symbolRefs := index . 0}}
 		{{- $folderName := index . 1}}
 		{{- range $symbolRef := $symbolRefs}}
-				{{$folderName}}_{{trimSpace $symbolRef.Definition.Name}} -> {{$folderName}}_{{trimSpace $symbolRef.Ref.MethodName}};
+				{{$folderName}}_{{trimSpace $symbolRef.Definition.Name}} -> {{$symbolRef.Ref.FolderName}}_{{trimSpace $symbolRef.Ref.MethodName}};
 		{{- end}}
 	{{- end}}
-{{- define "subgraph"}}
-{{- range $folderName, $subfolder := .SubFolders}}
-		subgraph cluster_{{replace $folderName "-" "_"}} {
-			label = "{{$folderName}} (folder)";
+{{- define "subgraph" -}}
+	{{- if .SubFolders }}
+		{{- range $d, $subfolder := .SubFolders -}}
+			{{- template "graph" $subfolder }}
+		{{- end}}
+	{{- end}}
+{{- end}}
+{{- define "graph" -}}
+		{{- $folderName := .FolderName}} {{- /* to avoid issues in files loop */ -}}
+		{{- if .Files}}		
+		subgraph cluster_{{replace .FolderName "-" "_"}} {
+			label = "{{.FolderName}} (folder)";
 			rankdir=TB;
-			{{- range $file := $subfolder.Files}}
+			{{- range $file := .Files}}
 			subgraph cluster_{{replace (replace $file.Name "." "_") "-" "_"}} {
 				label = "{{$file.Name}}";
 				labelloc="t";
@@ -90,9 +98,18 @@ const tmpl = `digraph {{.Name}} {
 			}
 			{{- template "refs" (arr $file.Refs $folderName) -}}
 			{{- end}}
+
+			{{- if .SubFolders }}
+				{{- template "subgraph" . -}}
+			{{- end}}
 		}
-		{{- template "refs" (arr $subfolder.Refs $folderName) -}}
-		{{- template "subgraph" $subfolder }}
-{{- end}}
+		{{- if .Refs }}
+			{{- template "refs" (arr .Refs .FolderName) -}}
+		{{- end}}
+		{{- else}}
+			{{- if .SubFolders }}
+				{{- template "subgraph" . -}}
+			{{- end}}
+		{{- end}}
 {{- end}}
 }`

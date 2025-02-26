@@ -16,8 +16,8 @@ import (
 // If the content is a directory, it scans all files in the directory
 // If scanForRefs is true, it scans for references
 // If the content is a file, it only scans the file
-func Scan(content *string, scanAgain *bool) error {
-	paths, err := findContent(content)
+func Scan(content *string, scanAgain, ask *bool) error {
+	paths, err := findContent(content, ask)
 	if err != nil {
 		return fmt.Errorf("error finding content: %s, err: %v", *content, err)
 	}
@@ -79,7 +79,7 @@ func getContentInDir(path string, paths *[]string) error {
 
 // findContent walks for the content root and attempts to find the content
 // Returns early if the content is an empty string, equal to scanning everything from project root
-func findContent(content *string) ([]string, error) {
+func findContent(content *string, ask *bool) ([]string, error) {
 	var paths []string
 	var err error
 	projectRootPath := projectPath()
@@ -110,10 +110,12 @@ func findContent(content *string) ([]string, error) {
 		return paths, nil
 	}
 
-	/*paths, err = askUser(paths, []string{})
-	if err != nil {
-		return nil, fmt.Errorf("error asking user: %v", err)
-	}*/
+	if *ask {
+		paths, err = askUser(paths, []string{})
+		if err != nil {
+			return nil, fmt.Errorf("error asking user: %v", err)
+		}
+	}
 
 	return paths, nil
 }
