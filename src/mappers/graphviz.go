@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/JoachimTislov/RefViz/internal"
 	"github.com/JoachimTislov/RefViz/ops"
 )
 
@@ -34,7 +35,7 @@ func CreateGraphvizFile(mapName *string) error {
 }
 
 func createDotFile(mapName *string) (*os.File, error) {
-	file, err := os.Create(ops.DotFilePath(mapName))
+	file, err := os.Create(internal.DotFilePath(mapName))
 	if err != nil {
 		return nil, fmt.Errorf("error creating dot file: %v", err)
 	}

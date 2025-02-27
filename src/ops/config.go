@@ -3,13 +3,13 @@ package ops
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 
+	"github.com/JoachimTislov/RefViz/internal"
 	"github.com/JoachimTislov/RefViz/types"
 )
 
 func save() error {
-	if err := marshalAndWriteToFile(config, configPath()); err != nil {
+	if err := marshalAndWriteToFile(config, internal.ConfigPath()); err != nil {
 		return fmt.Errorf("error updating configurations: %v", err)
 	}
 	return nil
@@ -19,7 +19,7 @@ func save() error {
 // If the path is valid, it returns the absolute path
 func checkPath(projectPath string) (string, error) {
 	if f, err := os.Stat(projectPath); err == nil && f.IsDir() {
-		absPath, err := getAbsPath(projectPath)
+		absPath, err := internal.GetAbsPath(projectPath)
 		if err != nil {
 			return "", err
 		}
@@ -48,21 +48,6 @@ func exclude(m *types.SbMap, items ...string) error {
 		}
 	}
 	return save()
-}
-
-func projectPath() string {
-	path := os.Getenv(refVizRootPath)
-	if path == "" {
-		panic("project path not set")
-	}
-	if customPath != "" {
-		path = filepath.Join(path, customPath)
-	}
-	return path
-}
-
-func setProjectPath(path string) error {
-	return os.Setenv(refVizRootPath, path)
 }
 
 func getContentFilters() (types.SbMap, types.SbMap, types.SbMap) {

@@ -12,14 +12,6 @@ func NewCache() *Cache {
 	}
 }
 
-func NewCacheEntry(name string, modTime int64, symbols map[string]*Symbol) CacheEntry {
-	return CacheEntry{
-		Name:    name,
-		ModTime: modTime,
-		Symbols: symbols,
-	}
-}
-
 func NewUnusedSymbol(dir, fileName, location string) UnusedSymbol {
 	return UnusedSymbol{
 		Dir:      dir,
@@ -90,11 +82,13 @@ type Symbol struct {
 	Kind     string          `json:"kind,omitempty"`
 	Position Position        `json:"position,omitempty"`
 	Path     string          `json:"path,omitempty"`
+	FilePath string          `json:"filePath,omitempty"`
 	Refs     map[string]*Ref `json:"refs,omitempty"`
 	ZeroRefs bool            `json:"zeroRefs,omitempty"` // if true, the symbol has no references
 }
 
 type Ref struct {
+	FilePath   string `json:"filepath,omitempty"`
 	Path       string `json:"path,omitempty"`
 	FolderName string `json:"folderName,omitempty"`
 	FileName   string `json:"fileName,omitempty"`

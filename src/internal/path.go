@@ -1,4 +1,4 @@
-package ops
+package internal
 
 import (
 	"fmt"
@@ -9,18 +9,22 @@ import (
 	"strings"
 )
 
-func GetMapPath(name string) string {
-	return getMapPath(name)
-}
+const (
+	refVizRootPath = "refVizProjectRoot"
+	tempFolder     = "/refViz"
+	// customPath is used to adjust the root path of the project
+	// This only for development, TODO: remove later
+	customPath = "" // /sample-code/quickfeed
+)
 
-func getMapPath(name string) string {
+func GetMapPath(name string) string {
 	if !strings.Contains(name, ".") {
 		name = fmt.Sprintf("%s.json", name)
 	}
-	return filepath.Join(mapPath(), name)
+	return filepath.Join(MapPath(), name)
 }
 
-func getAbsPath(path string) (string, error) {
+func GetAbsPath(path string) (string, error) {
 	absPath, err := filepath.Abs(path)
 	if err != nil {
 		return "", fmt.Errorf("error getting absolute path of file: %s, err: %v", path, err)
@@ -28,19 +32,34 @@ func getAbsPath(path string) (string, error) {
 	return absPath, nil
 }
 
-func getRootPath(name string) string {
-	return filepath.Join(projectPath(), name)
+func ProjectPath() string {
+	path := os.Getenv(refVizRootPath)
+	if path == "" {
+		panic("project path not set")
+	}
+	if customPath != "" {
+		path = filepath.Join(path, customPath)
+	}
+	return path
 }
 
-func configPath() string {
+func SetProjectPath(path string) error {
+	return os.Setenv(refVizRootPath, path)
+}
+
+func getRootPath(name string) string {
+	return filepath.Join(ProjectPath(), name)
+}
+
+func ConfigPath() string {
 	return getRootPath(tmp("config.json"))
 }
 
-func cachePath() string {
+func CachePath() string {
 	return getRootPath(tmp("cache.json"))
 }
 
-func getTempFolderPath() string {
+func GetTempFolderPath() string {
 	return getRootPath(tempFolder)
 }
 
@@ -49,23 +68,23 @@ func tmp(name string) string {
 	return filepath.Join(tempFolder, name)
 }
 
-func mapPath() string {
+func MapPath() string {
 	return getRootPath(tmp("maps"))
 }
 
-func graphvizPath() string {
+func GraphvizPath() string {
 	return getRootPath(tmp("graphviz"))
 }
 
 func DotFilePath(mapName *string) string {
-	return filepath.Join(graphvizPath(), fmt.Sprintf("%s.dot", *mapName))
+	return filepath.Join(GraphvizPath(), fmt.Sprintf("%s.dot", *mapName))
 }
 
 // getProjectRoot returns the root directory of the users project
 // If the user is in a git project, it will return the root of the git repository
 // Attempts to find the root of a project, if the user is not in a git repository
 // TODO: This is problematic for non-go projects, solve this
-func getProjectRoot() (string, error) {
+func GetProjectRoot() (string, error) {
 	if gitRoot, err := rootGitProject(); err == nil {
 		return gitRoot, nil
 	}
@@ -142,15 +161,9 @@ func getRoot() (string, error) {
 // Returns true if the directory has a marker file
 func dirHasMarker(dir string, markers []string) bool {
 	for i := range markers {
-		if exists(filepath.Join(dir, markers[i])) {
+		if Exists(filepath.Join(dir, markers[i])) {
 			return true
 		}
 	}
 	return false
-}
-
-// exists checks if a file exists
-func exists(filePath string) bool {
-	_, err := os.Stat(filePath)
-	return err == nil
 }

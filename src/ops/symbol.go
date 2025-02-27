@@ -7,9 +7,26 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/JoachimTislov/RefViz/internal"
 	"github.com/JoachimTislov/RefViz/lsp"
 	"github.com/JoachimTislov/RefViz/types"
 )
+
+const (
+	symbols = "symbols"
+)
+
+func getSymbol(path, symbolName string, forceScan *bool) (*types.Symbol, error) {
+	entry, _, err := getSymbols(path, *forceScan)
+	if err != nil {
+		return nil, fmt.Errorf("error getting symbols: %v", err)
+	}
+	s, ok := entry.Symbols[symbolName]
+	if !ok {
+		return nil, fmt.Errorf("symbol not found: %s", symbolName)
+	}
+	return s, nil
+}
 
 func getSymbols(filePath string, scanAgain bool) (*types.CacheEntry, bool, error) {
 
@@ -29,7 +46,7 @@ func getSymbols(filePath string, scanAgain bool) (*types.CacheEntry, bool, error
 
 		log.Printf("\tScanning for symbols for file: %s\n", filePath)
 
-		output, err := lsp.RunGopls(projectPath(), symbols, filePath)
+		output, err := lsp.RunGopls(internal.ProjectPath(), symbols, filePath)
 		if err != nil {
 			cache.LogError(fmt.Sprintf("gopls %s %s", symbols, filePath))
 			return nil, false, nil
@@ -50,7 +67,7 @@ func getSymbols(filePath string, scanAgain bool) (*types.CacheEntry, bool, error
 }
 
 func checkCache(filePath string) (*types.CacheEntry, error) {
-	relPath, err := filepath.Rel(projectPath(), filePath)
+	relPath, err := filepath.Rel(internal.ProjectPath(), filePath)
 	if err != nil {
 		return nil, fmt.Errorf("error getting relative path: %s, err: %v", filePath, err)
 	}
@@ -78,6 +95,7 @@ func parseSymbols(output, filePath string, s *map[string]*types.Symbol) {
 			Name:     name,
 			Kind:     kind,
 			Path:     fmt.Sprintf("%s:%s", filePath, args[l-1]),
+			FilePath: filePath,
 			Position: createPosition(args[l-1]),
 		}
 	}
@@ -91,20 +109,4 @@ func createPosition(p string) types.Position {
 		Line:      args2[0], // starting line position
 		CharRange: fmt.Sprintf("%s-%s", args2[1], strings.Split(args[1], ":")[1]),
 	}
-}
-
-func cacheEntry(cacheEntry *types.CacheEntry, path string) error {
-	relPath, err := filepath.Rel(projectPath(), path)
-	if err != nil {
-		return fmt.Errorf("error getting relative path: %s, err: %v", path, err)
-	}
-	cache.AddEntry(relPath, cacheEntry)
-	// updates the cache file
-	// writefile creates the cache file if it does not exist
-	cache.Mu.Lock()
-	defer cache.Mu.Unlock()
-	if err := marshalAndWriteToFile(cache, cachePath()); err != nil {
-		return err
-	}
-	return nil
 }

@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/JoachimTislov/RefViz/internal"
 	"github.com/JoachimTislov/RefViz/routines"
 	"github.com/manifoldco/promptui"
 )
@@ -82,11 +83,15 @@ func getContentInDir(path string, paths *[]string) error {
 func findContent(content *string, ask *bool) ([]string, error) {
 	var paths []string
 	var err error
-	projectRootPath := projectPath()
+	projectRootPath := internal.ProjectPath()
+	f, valid := checkIfValid(*content)
+	if !valid {
+		return nil, fmt.Errorf("error: %s is not a valid entity", projectRootPath)
+	}
 	switch {
 	case *content == "":
 		paths = append(paths, projectRootPath)
-	case filepath.IsAbs(*content):
+	case !f.IsDir() && filepath.IsAbs(*content):
 		paths = append(paths, *content)
 	default:
 		err = filepath.WalkDir(projectRootPath, func(path string, d fs.DirEntry, err error) error {
@@ -119,6 +124,12 @@ func findContent(content *string, ask *bool) ([]string, error) {
 
 	return paths, nil
 }
+
+const (
+	scanAll      = "Scan all content"
+	exit         = "Cancel"
+	scanSelected = "Scan selected content"
+)
 
 func askUser(paths []string, selectedPaths []string) ([]string, error) {
 	prompt := pathsPrompt(paths, len(selectedPaths))

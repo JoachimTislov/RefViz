@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/JoachimTislov/RefViz/internal"
 	"github.com/JoachimTislov/RefViz/routines"
 	"github.com/JoachimTislov/RefViz/types"
 )
@@ -25,7 +26,7 @@ func getFile(filePath string, v any) error {
 }
 
 func getFolderPathAndFileName(absPath string) (string, string, error) {
-	relPath, err := filepath.Rel(projectPath(), absPath)
+	relPath, err := filepath.Rel(internal.ProjectPath(), absPath)
 	if err != nil {
 		return "", "", fmt.Errorf("error getting relative path: %s, err: %v", absPath, err)
 	}

@@ -1,24 +1,12 @@
 package ops
 
-import (
-	"github.com/JoachimTislov/RefViz/types"
-)
+import "github.com/JoachimTislov/RefViz/types"
 
 const (
-	references     = "references"
-	symbols        = "symbols"
-	method         = "Method"
-	function       = "Function"
-	tempFolder     = "/refViz"
-	refVizRootPath = "refVizProjectRoot"
-	scanAll        = "Scan all content"
-	exit           = "Cancel"
-	scanSelected   = "Scan selected content"
-	yes            = "y"
-	Entities       = "map, node"
-	// customPath is used to adjust the root path of the project
-	// This only for development, TODO: remove later
-	customPath = "" // /sample-code/quickfeed
+	function = "Function"
+	yes      = "y"
+	Entities = "map, node"
+	method   = "Method"
 )
 
 var (

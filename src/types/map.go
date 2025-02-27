@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"reflect"
 	"strings"
 )
 
@@ -13,6 +12,55 @@ func NewMap(name *string) *RMap {
 	return &RMap{
 		Name:  *name,
 		Nodes: map[string]*Node{},
+	}
+}
+
+func (m *RMap) CreateMissingSymbols(projectPath string) error {
+	for _, node := range m.Nodes {
+		if err := node.RootFolder.createMissingSymbols(projectPath); err != nil {
+			return fmt.Errorf("error creating missing symbols: %v", err)
+		}
+	}
+	return nil
+}
+
+func (f *Folder) createMissingSymbols(projectPath string) error {
+	var refs []SymbolRef
+	f.getRefs(&refs)
+	for _, ref := range refs {
+		folder, err := f.GetRelatedFolder(ref.Ref.FilePath, projectPath)
+		if err != nil {
+			return fmt.Errorf("error getting related folder: %v", err)
+		}
+		name := ref.Ref.MethodName
+		file := folder.GetFile(&ref.Ref.FileName, &folder.FolderPath)
+		if _, ok := file.Symbols[name]; !ok {
+			if file.Symbols == nil {
+				(*file).Symbols = make(map[string]symbol)
+			}
+			(*file).Symbols[name] = symbol{
+				Name:     name,
+				FilePath: ref.Ref.FilePath,
+			}
+		}
+	}
+	return nil
+}
+
+func (f *Folder) getRefs(refs *[]SymbolRef) {
+	if f.SubFolders == nil {
+		return
+	}
+	for _, folder := range f.SubFolders {
+		for _, ref := range folder.Refs {
+			*refs = append(*refs, ref)
+		}
+		for _, file := range folder.Files {
+			for _, ref := range file.Refs {
+				*refs = append(*refs, ref)
+			}
+		}
+		folder.getRefs(refs)
 	}
 }
 
@@ -46,21 +94,22 @@ func newFolder(path string) *Folder {
 	return &Folder{
 		FolderName: filepath.Base(path),
 		FolderPath: path,
-		Files:      make(map[string]File),
+		Files:      make(map[string]*File),
 		SubFolders: make(map[string]*Folder),
 	}
 }
-func (f *File) AddSymbols(folderRefs *map[string]SymbolRef, symbols *map[string]*Symbol, folderPath, fileName *string) {
+
+func (f *File) AddSymbols(folderRefs *map[string]SymbolRef, symbols *map[string]*Symbol, fullFolderPath, fileName *string, force *bool) {
 	for _, s := range *symbols {
-		f.AddSymbol(s.SortRefsIntoHierarchy(folderRefs, &f.Refs, folderPath, fileName))
+		f.AddSymbol(s.SortRefsIntoHierarchy(folderRefs, &f.Refs, fullFolderPath, fileName, force), force)
 	}
 }
 
-func (f *File) AddSymbol(s Symbol) {
+func (f *File) AddSymbol(s Symbol, force *bool) {
 	if f.Symbols == nil {
 		f.Symbols = make(map[string]symbol)
 	}
-	if _, ok := f.Symbols[s.Name]; !ok {
+	if _, ok := f.Symbols[s.Name]; !ok || *force {
 		f.Symbols[s.Name] = s.createSymbol()
 	} else {
 		log.Printf("symbol: %s already exists in file: %s", s.Name, f.Name)
@@ -69,33 +118,34 @@ func (f *File) AddSymbol(s Symbol) {
 
 func (s *Symbol) newSymbolRef(ref *Ref) SymbolRef {
 	return SymbolRef{
-		Definition: Symbol{
-			Name: s.Name,
-			Kind: s.Kind,
-			Path: s.Path,
+		Definition: symbol{
+			Name:     s.Name,
+			Kind:     s.Kind,
+			FilePath: s.FilePath,
 		},
 		Ref: *ref,
 	}
 }
 
-func (s *Symbol) SortRefsIntoHierarchy(folderRefs, fileRefs *map[string]SymbolRef, folderPath, fileName *string) Symbol {
+func (s *Symbol) SortRefsIntoHierarchy(folderRefs, fileRefs *map[string]SymbolRef, folderPath, fileName *string, force *bool) Symbol {
+	if folderRefs == nil || fileRefs == nil {
+		log.Fatal("folderRefs or fileRefs is nil")
+	}
 	var refsToRemove []string
 	for key, r := range s.Refs {
 		sRef := s.newSymbolRef(r)
 
-		folderPageDiffer := filepath.Dir(r.Path) != *folderPath
+		folderPathDiffer := filepath.Dir(r.FilePath) != *folderPath
 		fileNameDiffer := r.FileName != *fileName
 		// if the reference is in a different folder or page, move it to the appropriate folder or file
 		// and remove it from the symbol
-		if folderPageDiffer || fileNameDiffer {
+		if folderPathDiffer || fileNameDiffer {
 			refsToRemove = append(refsToRemove, key)
-			key := fmt.Sprintf("%s_%s", sRef.Definition.Path, sRef.Ref.Path)
-			if folderPageDiffer {
-				addEntryToMap(folderRefs, key, sRef)
+			refsPointer := fileRefs
+			if folderPathDiffer {
+				refsPointer = folderRefs
 			}
-			if fileNameDiffer {
-				addEntryToMap(fileRefs, key, sRef)
-			}
+			addEntryToMap(refsPointer, sRef.createSymbolMapKey(), sRef, force)
 		}
 	}
 	for _, key := range refsToRemove {
@@ -104,14 +154,22 @@ func (s *Symbol) SortRefsIntoHierarchy(folderRefs, fileRefs *map[string]SymbolRe
 	return *s
 }
 
-func addEntryToMap[T any](m *map[string]T, key string, entry T) {
-	if m == nil {
-		panic(fmt.Sprintf("map: %s is nil", reflect.TypeOf(m)))
+func (s *SymbolRef) createSymbolMapKey() string {
+	return fmt.Sprintf("%s:%s_%s:%s", s.Definition.FilePath, s.Definition.Name, s.Ref.FilePath, s.Ref.MethodName)
+}
+
+func (s Symbol) createSymbolMapKey(refPath, methodName string) string {
+	return fmt.Sprintf("%s:%s_%s:%s", s.FilePath, s.Name, refPath, methodName)
+}
+
+func addEntryToMap(m *map[string]SymbolRef, key string, sr SymbolRef, force *bool) {
+	if *m == nil {
+		*m = make(map[string]SymbolRef)
 	}
-	if _, ok := (*m)[key]; !ok {
-		(*m)[key] = entry
+	if _, ok := (*m)[key]; !ok || *force {
+		(*m)[key] = sr
 	} else {
-		log.Printf("entry: %v already exists in map: %v, key: %s", entry, m, key)
+		log.Printf("symbolRef already exists, definition name: %s, ref name: %s", sr.Definition.Name, sr.Ref.MethodName)
 	}
 }
 
@@ -120,19 +178,18 @@ func addEntryToMap[T any](m *map[string]T, key string, entry T) {
 func (s Symbol) createSymbol() symbol {
 	symbolRefs := make(map[string]SymbolRef)
 	for _, ref := range s.Refs {
-		key := fmt.Sprintf("%s_%s", s.Path, ref.Path)
-		symbolRefs[key] = s.newSymbolRef(ref)
+		symbolRefs[s.createSymbolMapKey(ref.FilePath, ref.MethodName)] = s.newSymbolRef(ref)
 	}
 	return symbol{
-		Name: s.Name,
-		Kind: s.Kind,
-		Path: s.Path,
-		Refs: symbolRefs,
+		Name:     s.Name,
+		Kind:     s.Kind,
+		FilePath: s.FilePath,
+		Refs:     symbolRefs,
 	}
 }
 
-func newFile(name string, path string) File {
-	return File{
+func newFile(name string, path string) *File {
+	return &File{
 		Name: name,
 		Path: path,
 	}
@@ -140,21 +197,22 @@ func newFile(name string, path string) File {
 
 func (f *Folder) GetFile(fileName, folderPath *string) *File {
 	if f.Files == nil {
-		return nil
+		f.Files = make(map[string]*File)
 	}
 	file, ok := f.Files[*fileName]
 	if !ok {
 		file = newFile(*fileName, *folderPath)
+		f.Files[*fileName] = file
 	}
-	return &file
+	return file
 }
 
-func (f *Folder) AddFile(file *File, force bool) {
+func (f *Folder) AddFile(file *File, forceUpdate *bool) {
 	if f.Files == nil {
-		f.Files = make(map[string]File)
+		f.Files = make(map[string]*File)
 	}
-	if _, ok := f.Files[file.Name]; !ok || force {
-		f.Files[file.Name] = *file
+	if _, ok := f.Files[file.Name]; !ok || *forceUpdate {
+		f.Files[file.Name] = file
 	} else {
 		log.Printf("file: %s already exists in folder: %s", file.Name, f.FolderName)
 	}
@@ -218,7 +276,7 @@ type Folder struct {
 	FolderName string               `json:"folderName"`
 	FolderPath string               `json:"folderPath"`
 	Refs       map[string]SymbolRef `json:"refs,omitempty"`
-	Files      map[string]File      `json:"files,omitempty"`
+	Files      map[string]*File     `json:"files,omitempty"`
 	SubFolders map[string]*Folder   `json:"subFolders,omitempty"`
 }
 
@@ -230,13 +288,13 @@ type File struct {
 }
 
 type symbol struct {
-	Name string               `json:"name,omitempty"`
-	Kind string               `json:"kind,omitempty"`
-	Path string               `json:"path,omitempty"`
-	Refs map[string]SymbolRef `json:"refs,omitempty"`
+	Name     string               `json:"name,omitempty"`
+	Kind     string               `json:"kind,omitempty"`
+	FilePath string               `json:"path,omitempty"`
+	Refs     map[string]SymbolRef `json:"refs,omitempty"`
 }
 
 type SymbolRef struct {
-	Definition Symbol `json:"definition"`
+	Definition symbol `json:"definition"`
 	Ref        Ref    `json:"reference"`
 }

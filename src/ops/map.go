@@ -9,17 +9,18 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/JoachimTislov/RefViz/internal"
 	"github.com/JoachimTislov/RefViz/types"
 )
 
-func CheckMapOps(lm, ln, create, add, delete *bool, mapName *string, nodeName *string, content *string, force, ask *bool) {
+func CheckMapOps(lm, ln, create, add, delete *bool, mapName *string, nodeName *string, content *string, forceScan, forceUpdate, ask *bool) {
 
 	operations := types.Operation{
 		{Condition: *lm, Action: listMaps, Msg: "error listing maps"},
 		{Condition: *ln, Action: func() error { return listNodes(mapName) }, Msg: "error listing nodes"},
 		{Condition: *create, Action: func() error { return createMap(mapName) }, Msg: "error creating map"},
 		{Condition: *delete, Action: func() error { return deleteMap(mapName) }, Msg: "error deleting map"},
-		{Condition: *add, Action: func() error { return addContentToMap(mapName, content, nodeName, force, ask) }, Msg: "error adding content to map"},
+		{Condition: *add, Action: func() error { return addContentToMap(mapName, content, nodeName, forceScan, forceUpdate, ask) }, Msg: "error adding content to map"},
 		{Condition: *nodeName != "" && !*add, Action: func() error { return addNodeToMap(mapName, nodeName) }, Msg: "error adding node to map"},
 	}
 
@@ -38,9 +39,9 @@ func createMap(name *string) error {
 		log.Fatal("Please provide a map name")
 	}
 
-	mapPath := getMapPath(*name)
+	mapPath := internal.GetMapPath(*name)
 	act := "created"
-	if exists(mapPath) {
+	if internal.Exists(mapPath) {
 		if !confirm(fmt.Sprintf("Map: %s already exists", *name)) {
 			return nil
 		}
@@ -56,7 +57,7 @@ func createMap(name *string) error {
 	return nil
 }
 
-func addContentToMap(mapName, content, nodeName *string, force, ask *bool) error {
+func addContentToMap(mapName, content, nodeName *string, forceScan, forceUpdate, ask *bool) error {
 
 	if *mapName == "" || *content == "" {
 		log.Fatal("Please provide a map name and content to add")
@@ -70,7 +71,7 @@ func addContentToMap(mapName, content, nodeName *string, force, ask *bool) error
 	if err := determineNodeName(nodeName, rMap.Nodes, mapName); err != nil {
 		return fmt.Errorf("error determining node name: %v", err)
 	}
-	node, err := rMap.GetOrCreateNode(nodeName, projectPath())
+	node, err := rMap.GetOrCreateNode(nodeName, internal.ProjectPath())
 	if err != nil {
 		return fmt.Errorf("error getting or creating node: %v", err)
 	}
@@ -81,18 +82,23 @@ func addContentToMap(mapName, content, nodeName *string, force, ask *bool) error
 	}
 
 	for _, p := range paths {
-		if err := addPath(p, node.RootFolder, force); err != nil {
+		if err := addPath(p, node.RootFolder, forceScan, forceUpdate); err != nil {
 			return fmt.Errorf("error adding path: %v", err)
 		}
 	}
 
-	if err := marshalAndWriteToFile(rMap, getMapPath(rMap.Name)); err != nil {
+	// TODO: run in go routine and wait for symbol request and the go routine to finish
+	// OR move getSymbol to different package
+
+	rMap.CreateMissingSymbols(internal.ProjectPath())
+
+	if err := marshalAndWriteToFile(rMap, internal.GetMapPath(rMap.Name)); err != nil {
 		return fmt.Errorf("error writing to file: %v", err)
 	}
 	return nil
 }
 
-func addPath(p string, rootFolder *types.Folder, force *bool) error {
+func addPath(p string, rootFolder *types.Folder, forceScan, forceUpdate *bool) error {
 	e, err := os.Stat(p)
 	if err != nil {
 		return fmt.Errorf("error analyzing path: %s, err: %v", p, err)
@@ -108,7 +114,7 @@ func addPath(p string, rootFolder *types.Folder, force *bool) error {
 	}
 
 	for _, p := range subPaths {
-		if err := addFileToFolder(p, rootFolder, force); err != nil {
+		if err := addFileToFolder(p, rootFolder, forceScan, forceUpdate); err != nil {
 			return fmt.Errorf("error adding file to folder: %v", err)
 		}
 	}
@@ -151,15 +157,15 @@ func determineNodeName(nodeName *string, nodes map[string]*types.Node, mapName *
 	return nil
 }
 
-func addFileToFolder(absPath string, folder *types.Folder, force *bool) error {
+func addFileToFolder(absPath string, folder *types.Folder, forceScan, forceUpdate *bool) error {
 
-	folder, err := folder.GetRelatedFolder(absPath, projectPath())
+	folder, err := folder.GetRelatedFolder(absPath, internal.ProjectPath())
 	if err != nil {
 		return fmt.Errorf("error updating to related folder: %v", err)
 	}
 	// honestly, just stupid, but it works
 	// result of making a function specific for one case....
-	getContent(absPath, *force, nil)()
+	getContent(absPath, *forceScan, nil)()
 
 	cacheEntry, _, err := getSymbols(absPath, false)
 	if err != nil {
@@ -172,8 +178,9 @@ func addFileToFolder(absPath string, folder *types.Folder, force *bool) error {
 		return fmt.Errorf("error getting folder path and file name: %v", err)
 	}
 	file := folder.GetFile(&fileName, &folderPath)
-	file.AddSymbols(&folder.Refs, &cacheEntry.Symbols, &folderPath, &fileName)
-	folder.AddFile(file, *force)
+	fullFolderPath := filepath.Join(internal.ProjectPath(), folderPath)
+	file.AddSymbols(&folder.Refs, &cacheEntry.Symbols, &fullFolderPath, &fileName, forceUpdate)
+	folder.AddFile(file, forceUpdate)
 	return nil
 }
 
@@ -187,9 +194,9 @@ func addNodeToMap(mapName, nodeName *string) error {
 	if err != nil {
 		return err
 	}
-	rMap.AddNode(nodeName, projectPath())
+	rMap.AddNode(nodeName, internal.ProjectPath())
 
-	if err := marshalAndWriteToFile(rMap, getMapPath(rMap.Name)); err != nil {
+	if err := marshalAndWriteToFile(rMap, internal.GetMapPath(rMap.Name)); err != nil {
 		return fmt.Errorf("error writing to file: %v", err)
 	}
 	return nil
@@ -197,7 +204,10 @@ func addNodeToMap(mapName, nodeName *string) error {
 
 func LoadMap(name *string) (*types.RMap, error) {
 	rMap := types.NewMap(name)
-	path := getMapPath(*name)
+	path := internal.GetMapPath(*name)
+	if !internal.Exists(path) {
+		log.Fatalf("Map: %s does not exist", *name)
+	}
 	if err := getFile(path, rMap); err != nil {
 		return nil, fmt.Errorf("error loading map from file with path: %s, err: %v", err, path)
 	}
@@ -211,7 +221,7 @@ func deleteMap(name *string) error {
 	}
 
 	if confirm(fmt.Sprintf("You are about to delete map %s", *name)) {
-		if err := os.Remove(getMapPath(*name)); err != nil {
+		if err := os.Remove(internal.GetMapPath(*name)); err != nil {
 			if os.IsNotExist(err) {
 				log.Printf("Map: %s does not exist\n", *name)
 				return nil
@@ -227,7 +237,7 @@ func deleteMap(name *string) error {
 }
 
 func getMaps() ([]*string, error) {
-	maps, err := os.ReadDir(mapPath())
+	maps, err := os.ReadDir(internal.MapPath())
 	if err != nil {
 		return nil, fmt.Errorf("error reading directory: %v", err)
 	}

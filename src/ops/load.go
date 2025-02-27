@@ -3,6 +3,8 @@ package ops
 import (
 	"fmt"
 	"os"
+
+	"github.com/JoachimTislov/RefViz/internal"
 )
 
 func LoadDefs() error {
@@ -23,11 +25,11 @@ func LoadDefs() error {
 
 // loadRootPath loads the root path of the project and sets it
 func loadRootPath() error {
-	root, err := getProjectRoot()
+	root, err := internal.GetProjectRoot()
 	if err != nil {
 		return err
 	}
-	if err := setProjectPath(root); err != nil {
+	if err := internal.SetProjectPath(root); err != nil {
 		return err
 	}
 	return nil
@@ -35,9 +37,9 @@ func loadRootPath() error {
 
 // initFolder initializes the project folder if it does not exist
 func initFolder() error {
-	folderPaths := []string{getTempFolderPath(), mapPath(), graphvizPath()}
+	folderPaths := []string{internal.GetTempFolderPath(), internal.MapPath(), internal.GraphvizPath()}
 	for _, p := range folderPaths {
-		if !exists(p) {
+		if !internal.Exists(p) {
 			if err := os.Mkdir(p, 0755); err != nil {
 				return fmt.Errorf("error creating project folder: %v", err)
 			}
@@ -49,21 +51,21 @@ func initFolder() error {
 // loadConfig creates default config file if it does not exist
 // If the file does exist it reads the file and unmarshals it into the config variable
 func loadConfig() error {
-	if err := loadFile(configPath(), config); err != nil {
+	if err := loadFile(internal.ConfigPath(), config); err != nil {
 		return fmt.Errorf("error loading configurations: %v", err)
 	}
 	return nil
 }
 
 func loadCache() error {
-	if err := loadFile(cachePath(), cache); err != nil {
+	if err := loadFile(internal.CachePath(), cache); err != nil {
 		return fmt.Errorf("error loading cache: %v", err)
 	}
 	return nil
 }
 
 func loadFile(path string, v any) error {
-	if !exists(path) {
+	if !internal.Exists(path) {
 		if err := marshalAndWriteToFile(v, path); err != nil {
 			return fmt.Errorf("error creating config file: %v", err)
 		}
