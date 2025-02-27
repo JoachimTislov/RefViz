@@ -112,7 +112,7 @@ func (f *File) AddSymbol(s Symbol, force *bool) {
 	if _, ok := f.Symbols[s.Name]; !ok || *force {
 		f.Symbols[s.Name] = s.createSymbol()
 	} else {
-		log.Printf("symbol: %s already exists in file: %s", s.Name, f.Name)
+		//log.Printf("symbol: %s already exists in file: %s", s.Name, f.Name)
 	}
 }
 
@@ -214,7 +214,7 @@ func (f *Folder) AddFile(file *File, forceUpdate *bool) {
 	if _, ok := f.Files[file.Name]; !ok || *forceUpdate {
 		f.Files[file.Name] = file
 	} else {
-		log.Printf("file: %s already exists in folder: %s", file.Name, f.FolderName)
+		//log.Printf("file: %s already exists in folder: %s", file.Name, f.FolderName)
 	}
 }
 

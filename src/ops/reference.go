@@ -104,5 +104,13 @@ func getRelatedMethod(path string, refLinePos string) (*string, error) {
 			parentSymbol = s
 		}
 	}
+	if parentSymbol == nil {
+		for _, s := range c.Symbols {
+			if s.Position.Line == refLinePos {
+				return &s.Name, nil
+			}
+		}
+		panic(fmt.Sprintf("Parent symbol is nil, path: %s, line: %s", path, refLinePos))
+	}
 	return &parentSymbol.Name, nil
 }

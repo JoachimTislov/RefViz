@@ -84,14 +84,10 @@ func findContent(content *string, ask *bool) ([]string, error) {
 	var paths []string
 	var err error
 	projectRootPath := internal.ProjectPath()
-	f, valid := checkIfValid(*content)
-	if !valid {
-		return nil, fmt.Errorf("error: %s is not a valid entity", projectRootPath)
-	}
 	switch {
 	case *content == "":
 		paths = append(paths, projectRootPath)
-	case !f.IsDir() && filepath.IsAbs(*content):
+	case filepath.IsAbs(*content):
 		paths = append(paths, *content)
 	default:
 		err = filepath.WalkDir(projectRootPath, func(path string, d fs.DirEntry, err error) error {
