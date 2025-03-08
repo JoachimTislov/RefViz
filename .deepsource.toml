@@ -1,10 +1,16 @@
 version = 1
 
+exclude_patterns = [
+"sample-code/**"
+]
+
 [[analyzers]]
 name = "go"
+enabled = true
 
   [analyzers.meta]
   import_root = "github.com/JoachimTislov/RefViz"
 
 [[analyzers]]
 name = "shell"
+enabled = true
