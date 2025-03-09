@@ -6,27 +6,27 @@ import (
 	"log"
 	"os/exec"
 
-	"github.com/JoachimTislov/RefViz/internal"
+	c "github.com/JoachimTislov/RefViz/content"
+	"github.com/JoachimTislov/RefViz/core"
+	"github.com/JoachimTislov/RefViz/internal/ops"
+	"github.com/JoachimTislov/RefViz/internal/path"
 	"github.com/JoachimTislov/RefViz/mappers"
-	"github.com/JoachimTislov/RefViz/ops"
 )
 
-/*
-TODO: implement libraries which finds references for typescript
-*/
-
 func init() {
-	if err := ops.LoadDefs(); err != nil {
+	if err := core.LoadDefs(); err != nil {
 		log.Fatal(err)
 	}
 }
+
+const entities = "map or a node"
 
 func main() {
 	graphviz := flag.String("graphviz", "", "generate graphviz file with the given map")
 	lm := flag.Bool("lm", false, "list maps")
 	ln := flag.Bool("ln", false, "list nodes")
-	create := flag.Bool("c", false, fmt.Sprintf("create (%s)", ops.Entities))
-	delete := flag.Bool("d", false, fmt.Sprintf("delete (%s)", ops.Entities))
+	create := flag.Bool("c", false, fmt.Sprintf("create (%s)", entities))
+	delete := flag.Bool("d", false, fmt.Sprintf("delete (%s)", entities))
 	mapName := flag.String("m", "", "map name")
 	nodeName := flag.String("n", "", "node name")
 	scan := flag.Bool("scan", false, "scan the project for content")
@@ -39,10 +39,10 @@ func main() {
 	flag.Parse()
 
 	// Determine if map operations are to be performed
-	ops.CheckMapOps(lm, ln, create, add, delete, mapName, nodeName, content, forceScan, forceUpdate, ask)
+	ops.Check(lm, ln, create, add, delete, mapName, nodeName, content, forceScan, forceUpdate, ask)
 
 	if *scan {
-		if err := ops.Scan(content, forceScan, ask); err != nil {
+		if err := c.Scan(content, forceScan, ask); err != nil {
 			log.Fatalf("Error scanning content: %v\n", err)
 		}
 	}
@@ -60,7 +60,7 @@ func main() {
 			log.Fatalf("error creating graphviz map: %v", err)
 		}
 
-		cmd := exec.Command("xdot", internal.DotFilePath(graphviz))
+		cmd := exec.Command("xdot", path.DotFile(graphviz))
 		if err := cmd.Start(); err != nil {
 			log.Fatalf("Please install xdot with: sudo apt-get install xdot, its used to display the graph")
 		}

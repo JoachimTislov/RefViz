@@ -6,12 +6,12 @@ import (
 	"os"
 	"strings"
 
-	"github.com/JoachimTislov/RefViz/internal"
-	"github.com/JoachimTislov/RefViz/ops"
+	"github.com/JoachimTislov/RefViz/internal/graphMap"
+	"github.com/JoachimTislov/RefViz/internal/path"
 )
 
 func CreateGraphvizFile(mapName *string) error {
-	m, err := ops.LoadMap(mapName)
+	m, err := graphMap.Load(mapName)
 	if err != nil {
 		return fmt.Errorf("error loading map: %v", err)
 	}
@@ -35,7 +35,7 @@ func CreateGraphvizFile(mapName *string) error {
 }
 
 func createDotFile(mapName *string) (*os.File, error) {
-	file, err := os.Create(internal.DotFilePath(mapName))
+	file, err := os.Create(path.DotFile(mapName))
 	if err != nil {
 		return nil, fmt.Errorf("error creating dot file: %v", err)
 	}
