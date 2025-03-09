@@ -5,7 +5,6 @@ import (
 	"log"
 	"path/filepath"
 
-	"github.com/JoachimTislov/RefViz/content/symbol"
 	"github.com/JoachimTislov/RefViz/core/cache"
 	p "github.com/JoachimTislov/RefViz/internal/path"
 	"github.com/JoachimTislov/RefViz/internal/types"
@@ -49,46 +48,4 @@ func Get(path string, symbol *types.Symbol, refs *map[string]*types.Ref) func() 
 
 		return nil
 	}
-}
-
-const (
-	function = "Function"
-	method   = "Method"
-)
-
-// getRelatedMethod finds the closest method above the reference
-func getRelatedMethod(path string, refLinePos string) (*string, error) {
-	c, _, err := symbol.GetMany(path, false)
-	if err != nil {
-		return nil, fmt.Errorf("error getting symbols: %s, err: %v", path, err)
-	}
-	if len(c.Symbols) == 0 {
-		return nil, fmt.Errorf("zero symbols found in %s", path)
-	}
-	var parentSymbol *types.Symbol
-	// loop through potential parent symbols
-	for _, s := range c.Symbols {
-		// skip if the symbol is not a function
-		if s.Kind != function && s.Kind != method {
-			continue
-		}
-		if parentSymbol == nil {
-			parentSymbol = s
-			continue
-		}
-		isFurtherDown := parentSymbol.Position.Line < s.Position.Line
-		isAboveRef := s.Position.Line < refLinePos
-		if isFurtherDown && isAboveRef {
-			parentSymbol = s
-		}
-	}
-	if parentSymbol == nil {
-		for _, s := range c.Symbols {
-			if s.Position.Line == refLinePos {
-				return &s.Name, nil
-			}
-		}
-		panic(fmt.Sprintf("Parent symbol is nil, path: %s, line: %s", path, refLinePos))
-	}
-	return &parentSymbol.Name, nil
 }
