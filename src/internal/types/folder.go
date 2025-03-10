@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/JoachimTislov/RefViz/internal/path"
 )
 
 type Folder struct {
@@ -24,14 +26,14 @@ func newFolder(path string) *Folder {
 	}
 }
 
-func (f *Folder) GetFile(fileName, folderPath *string) *File {
+func (f *Folder) GetFile(fileName, folderPath string) *File {
 	if f.Files == nil {
 		f.Files = make(map[string]*File)
 	}
-	file, ok := f.Files[*fileName]
+	file, ok := f.Files[fileName]
 	if !ok {
-		file = newFile(*fileName, *folderPath)
-		f.Files[*fileName] = file
+		file = newFile(fileName, folderPath)
+		f.Files[fileName] = file
 	}
 	return file
 }
@@ -89,21 +91,21 @@ func determineFolderPath(absPath, projectPath string) (*[]string, error) {
 	return &dirs, nil
 }
 
-func (f *Folder) createMissingSymbols(projectPath string) error {
+func (f *Folder) CreateMissingSymbols() error {
 	var refs []SymbolRef
 	f.getRefs(&refs)
 	for _, ref := range refs {
-		folder, err := f.GetRelatedFolder(ref.Ref.FilePath, projectPath)
+		folder, err := f.GetRelatedFolder(ref.Ref.FilePath, path.Project())
 		if err != nil {
 			return fmt.Errorf("error getting related folder: %v", err)
 		}
 		name := ref.Ref.MethodName
-		file := folder.GetFile(&ref.Ref.FileName, &folder.FolderPath)
+		file := folder.GetFile(ref.Ref.FileName, folder.FolderPath)
 		if _, ok := file.Symbols[name]; !ok {
 			if file.Symbols == nil {
-				(*file).Symbols = make(map[string]symbol)
+				file.Symbols = make(map[string]*definition)
 			}
-			(*file).Symbols[name] = symbol{
+			file.Symbols[name] = &definition{
 				Name:     name,
 				FilePath: ref.Ref.FilePath,
 			}

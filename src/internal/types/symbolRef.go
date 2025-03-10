@@ -5,8 +5,8 @@ import (
 )
 
 type SymbolRef struct {
-	Definition symbol `json:"definition"`
-	Ref        Ref    `json:"reference"`
+	Definition definition `json:"definition"`
+	Ref        Ref        `json:"reference"`
 }
 
 func (s *SymbolRef) createSymbolMapKey() string {

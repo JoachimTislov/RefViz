@@ -9,7 +9,7 @@ import (
 // If the path is valid, it returns the absolute path
 func Check(projectPath string) (string, error) {
 	if f, err := os.Stat(projectPath); err == nil && f.IsDir() {
-		absPath, err := getAbs(projectPath)
+		absPath, err := GetAbs(projectPath)
 		if err != nil {
 			return "", err
 		}

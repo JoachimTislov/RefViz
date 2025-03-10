@@ -15,7 +15,7 @@ import (
 // If the user is in a git project, it will return the root of the git repository
 // Attempts to find the root of a project, if the user is not in a git repository
 // TODO: This is problematic for non-go projects, solve this
-func GetProjectRoot() (string, error) {
+func getProjectRoot() (string, error) {
 	if gitRoot, err := rootGitProject(); err == nil {
 		return gitRoot, nil
 	}

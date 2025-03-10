@@ -93,7 +93,7 @@ const tmpl = `digraph {{.Name}} {
 				labelloc="t";
 				rankdir=TB;
 				{{- range $symbol := $file.Symbols}}
-				{{$folderName}}_{{trimSpace $symbol.Name}} [label = "{{trimSpace $symbol.Name}}, {{$symbol.Kind}}";shape = box;];
+				{{$folderName}}_{{trimSpace $symbol.Name}} [label = "{{trimSpace $symbol.Name}}";shape = box;];
 					{{- template "refs" (arr $symbol.Refs $folderName) -}}
 				{{- end}}
 			}

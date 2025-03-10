@@ -15,7 +15,7 @@ import (
 // If the content is a directory, it scans all files in the directory
 // If scanForRefs is true, it scans for references
 // If the content is a file, it only scans the file
-func Scan(content *string, scanAgain, ask *bool) error {
+func Scan(content *string, scanAgain, ask bool) error {
 	paths, err := Find(content, ask)
 	if err != nil {
 		return fmt.Errorf("error finding content: %s, err: %v", *content, err)
@@ -26,7 +26,7 @@ func Scan(content *string, scanAgain, ask *bool) error {
 
 	everythingIsUpToDate := true
 	for _, path := range paths {
-		if err := processPath(path, *scanAgain, &everythingIsUpToDate); err != nil {
+		if err := processPath(path, scanAgain, &everythingIsUpToDate); err != nil {
 			return fmt.Errorf("error processing path: %v", err)
 		}
 	}

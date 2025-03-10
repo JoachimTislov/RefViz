@@ -1,0 +1,52 @@
+{
+    "name": "QF root main.go",
+    "nodes": {
+        "main": {
+            "rootFolder": {
+                "quickfeed": {
+                    "folderName": "quickfeed",
+                    "folderPath": "/home/yoa/RefViz/sample-code/quickfeed",
+                    "files": {
+                        "main.go": {
+                            "name": "main.go",
+                            "path": "quickfeed",
+                            "symbols": {
+                                "checkDomain": {
+                                    "name": "checkDomain",
+                                    "kind": "Function",
+                                    "path": "/home/yoa/RefViz/sample-code/quickfeed/main.go",
+                                    "refs": {
+                                        "/home/yoa/RefViz/sample-code/quickfeed/main.go:checkDomain_/home/yoa/RefViz/sample-code/quickfeed/main.go:main": {
+                                            "definition": {
+                                                "name": "checkDomain",
+                                                "kind": "Function",
+                                                "path": "/home/yoa/RefViz/sample-code/quickfeed/main.go"
+                                            },
+                                            "reference": {
+                                                "filepath": "/home/yoa/RefViz/sample-code/quickfeed/main.go",
+                                                "path": "/home/yoa/RefViz/sample-code/quickfeed/main.go:88:51-62",
+                                                "folderName": "quickfeed",
+                                                "fileName": "main.go",
+                                                "methodName": "main"
+                                            }
+                                        }
+                                    }
+                                },
+                                "init": {
+                                    "name": "init",
+                                    "kind": "Function",
+                                    "path": "/home/yoa/RefViz/sample-code/quickfeed/main.go"
+                                },
+                                "main": {
+                                    "name": "main",
+                                    "kind": "Function",
+                                    "path": "/home/yoa/RefViz/sample-code/quickfeed/main.go"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }    
+    }
+}

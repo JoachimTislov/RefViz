@@ -15,7 +15,7 @@ const (
 	references = "references"
 )
 
-func Get(path string, symbol *types.Symbol, refs *map[string]*types.Ref) func() error {
+func Get(path string, symbol *types.Symbol) func() error {
 	return func() error {
 		pathToSymbol := fmt.Sprintf("%s:%s", path, symbol.Position.String())
 		relPath, err := filepath.Rel(p.Project(), path)
@@ -42,7 +42,7 @@ func Get(path string, symbol *types.Symbol, refs *map[string]*types.Ref) func() 
 			))
 		}
 
-		if err := parseRefs(string(output), refs); err != nil {
+		if err := parseRefs(string(output), symbol, relPath); err != nil {
 			return fmt.Errorf("error parsing references: %s, err: %v", pathToSymbol, err)
 		}
 

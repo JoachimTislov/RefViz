@@ -18,7 +18,7 @@ type Node struct {
 	RootFolder *Folder `json:"rootFolder"`
 }
 
-type symbol struct {
+type definition struct {
 	Name     string               `json:"name,omitempty"`
 	Kind     string               `json:"kind,omitempty"`
 	FilePath string               `json:"path,omitempty"`
@@ -35,15 +35,6 @@ func NewMap(name *string) *RMap {
 func (m *RMap) Save(path string) error {
 	if err := internal.MarshalAndWriteToFile(m, path); err != nil {
 		return fmt.Errorf("error writing to file: %v", err)
-	}
-	return nil
-}
-
-func (m *RMap) CreateMissingSymbols(projectPath string) error {
-	for _, node := range m.Nodes {
-		if err := node.RootFolder.createMissingSymbols(projectPath); err != nil {
-			return fmt.Errorf("error creating missing symbols: %v", err)
-		}
 	}
 	return nil
 }

@@ -13,7 +13,7 @@ import (
 
 // findContent walks for the content root and attempts to find the content
 // Returns early if the content is an empty string, equal to scanning everything from project root
-func Find(content *string, ask *bool) ([]string, error) {
+func Find(content *string, ask bool) ([]string, error) {
 	var paths []string
 	var err error
 	projectRootPath := path.Project()
@@ -44,7 +44,7 @@ func Find(content *string, ask *bool) ([]string, error) {
 		return paths, nil
 	}
 
-	if *ask {
+	if ask {
 		paths, err = prompt.AskUser(paths, []string{})
 		if err != nil {
 			return nil, fmt.Errorf("error asking user: %v", err)

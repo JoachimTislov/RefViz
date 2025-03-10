@@ -10,6 +10,7 @@ import (
 
 	c "github.com/JoachimTislov/RefViz/content"
 	"github.com/JoachimTislov/RefViz/content/symbol"
+	"github.com/JoachimTislov/RefViz/core/cache"
 	"github.com/JoachimTislov/RefViz/internal/path"
 	"github.com/JoachimTislov/RefViz/internal/prompt"
 	"github.com/JoachimTislov/RefViz/internal/types"
@@ -52,7 +53,7 @@ func AddContent(mapName, content, nodeName *string, forceScan, forceUpdate, ask 
 		return fmt.Errorf("error getting or creating node: %v", err)
 	}
 
-	paths, err := c.Find(content, ask)
+	paths, err := c.Find(content, *ask)
 	if err != nil {
 		return err
 	}
@@ -66,7 +67,11 @@ func AddContent(mapName, content, nodeName *string, forceScan, forceUpdate, ask 
 	// TODO: run in go routine and wait for symbol request and the go routine to finish
 	// OR move getSymbol to different package
 
-	rMap.CreateMissingSymbols(path.Project())
+	for _, node := range rMap.Nodes {
+		if err := node.RootFolder.CreateMissingSymbols(); err != nil {
+			return fmt.Errorf("error creating missing symbols: %v", err)
+		}
+	}
 
 	if err := rMap.Save(path.GetMap(rMap.Name)); err != nil {
 		return fmt.Errorf("error saving map: %v", err)
@@ -117,7 +122,17 @@ func addPath(p string, rootFolder *types.Folder, forceScan, forceUpdate *bool) e
 	}
 
 	for _, p := range subPaths {
-		if err := addFileToFolder(p, rootFolder, forceScan, forceUpdate); err != nil {
+		// honestly, just stupid, but it works
+		// result of making a function specific for one case....
+		// TODO: This can be removed, its just a precaution to confirm that file is scanned
+		c.Get(p, *forceScan, nil)()
+
+		cacheEntry, _, err := symbol.GetMany(p, false)
+		if err != nil {
+			return fmt.Errorf("error getting symbols: %v", err)
+		}
+
+		if err := addFileToFolder(cacheEntry.Symbols, p, rootFolder, forceScan, forceUpdate); err != nil {
 			return fmt.Errorf("error adding file to folder: %v", err)
 		}
 	}
@@ -136,35 +151,45 @@ func retrieveContentInDir(p string, paths *[]string) error {
 	})
 }
 
-func addFileToFolder(absPath string, folder *types.Folder, forceScan, forceUpdate *bool) error {
-
-	folder, err := folder.GetRelatedFolder(absPath, path.Project())
+func addFileToFolder(symbols map[string]*types.Symbol, absPath string, root *types.Folder, forceScan, forceUpdate *bool) error {
+	projectPath := path.Project()
+	folder, err := root.GetRelatedFolder(absPath, projectPath)
 	if err != nil {
 		return fmt.Errorf("error updating to related folder: %v", err)
 	}
-	// honestly, just stupid, but it works
-	// result of making a function specific for one case....
-	c.Get(absPath, *forceScan, nil)()
 
-	cacheEntry, _, err := symbol.GetMany(absPath, false)
-	if err != nil {
-		return fmt.Errorf("error getting symbols: %v", err)
+	// Add child symbols to the map as well
+	for parentName, symbol := range symbols {
+		for name, childSymbol := range symbol.ChildSymbols {
+
+			childFromCache := cache.GetSymbol(childSymbol.Key, name)
+			if symbol == nil {
+				// Should not happen
+				panic(fmt.Sprintf("Child symbol: %s not found in cache, key: %s", name, childSymbol.Key))
+			}
+
+			childFromCache.Clean(parentName)
+
+			symbols := make(map[string]*types.Symbol)
+			symbols[symbol.Name] = childFromCache
+
+			addFileToFolder(symbols, childFromCache.FilePath, root, forceScan, forceUpdate)
+		}
 	}
-	////
 
-	folderPath, fileName, err := getFolderPathAndFileName(absPath)
+	folderPath, fileName, err := getFolderPathAndFileName(absPath, projectPath)
 	if err != nil {
 		return fmt.Errorf("error getting folder path and file name: %v", err)
 	}
-	file := folder.GetFile(&fileName, &folderPath)
-	fullFolderPath := filepath.Join(path.Project(), folderPath)
-	file.AddSymbols(&folder.Refs, &cacheEntry.Symbols, &fullFolderPath, &fileName, forceUpdate)
+	file := folder.GetFile(fileName, folderPath)
+	fullFolderPath := filepath.Join(projectPath, folderPath)
+	file.AddSymbols(&folder.Refs, &symbols, &fullFolderPath, &fileName, forceUpdate)
 	folder.AddFile(file, forceUpdate)
 	return nil
 }
 
-func getFolderPathAndFileName(absPath string) (string, string, error) {
-	relPath, err := filepath.Rel(path.Project(), absPath)
+func getFolderPathAndFileName(absPath, projectPath string) (string, string, error) {
+	relPath, err := filepath.Rel(projectPath, absPath)
 	if err != nil {
 		return "", "", fmt.Errorf("error getting relative path: %s, err: %v", absPath, err)
 	}

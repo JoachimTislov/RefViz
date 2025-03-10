@@ -16,8 +16,8 @@ const (
 	symbols = "symbols"
 )
 
-func GetOne(path, symbolName string, forceScan *bool) (*types.Symbol, error) {
-	entry, _, err := GetMany(path, *forceScan)
+func GetOne(path, symbolName string, forceScan bool) (*types.Symbol, error) {
+	entry, _, err := GetMany(path, forceScan)
 	if err != nil {
 		return nil, fmt.Errorf("error getting symbols: %v", err)
 	}

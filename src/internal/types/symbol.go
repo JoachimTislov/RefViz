@@ -4,26 +4,57 @@ import (
 	"fmt"
 	"log"
 	"path/filepath"
+	"strings"
+
+	"github.com/JoachimTislov/RefViz/core/config"
 )
 
 type Symbol struct {
-	Name     string          `json:"name,omitempty"`
-	Kind     string          `json:"kind,omitempty"`
-	Position Position        `json:"position,omitempty"`
-	Path     string          `json:"path,omitempty"`
-	FilePath string          `json:"filePath,omitempty"`
-	Refs     map[string]*Ref `json:"refs,omitempty"`
-	ZeroRefs bool            `json:"zeroRefs,omitempty"` // if true, the symbol has no references
+	Name         string                  `json:"name,omitempty"`
+	Kind         string                  `json:"kind,omitempty"`
+	Position     Position                `json:"position,omitempty"`
+	Path         string                  `json:"path,omitempty"`
+	FilePath     string                  `json:"filePath,omitempty"`
+	ChildSymbols map[string]*ChildSymbol `json:"childSymbols,omitempty"`
+	Refs         map[string]*Ref         `json:"refs,omitempty"`
+	ZeroRefs     bool                    `json:"zeroRefs,omitempty"` // if true, the symbol has no references
+}
+
+type ChildSymbol struct {
+	Key      string `json:"name,omitempty"`
+	FilePath string `json:"filePath,omitempty"`
 }
 
 func (s *Symbol) newSymbolRef(ref *Ref) SymbolRef {
 	return SymbolRef{
-		Definition: symbol{
+		Definition: definition{
 			Name:     s.Name,
 			Kind:     s.Kind,
 			FilePath: s.FilePath,
 		},
 		Ref: *ref,
+	}
+}
+
+// Removes child symbols and keeps only the related references
+func (s *Symbol) Clean(methodName string) {
+	s.ChildSymbols = nil
+	var refs = make(map[string]*Ref)
+	for key, ref := range s.Refs {
+		if ref.MethodName == methodName {
+			refs[key] = ref
+		}
+	}
+	s.Refs = refs
+}
+
+func (s *Symbol) AddChildSymbol(name, filePath, relPath string) {
+	if s.ChildSymbols == nil {
+		s.ChildSymbols = make(map[string]*ChildSymbol)
+	}
+	s.ChildSymbols[name] = &ChildSymbol{
+		Key:      relPath,
+		FilePath: filePath,
 	}
 }
 
@@ -67,12 +98,12 @@ func addEntryToMap(m *map[string]SymbolRef, key string, sr SymbolRef, force *boo
 
 // purely done to match the other refs slices type
 // makes it easier to loop through later
-func (s *Symbol) CreateSymbol() symbol {
+func (s *Symbol) createDefinition() *definition {
 	symbolRefs := make(map[string]SymbolRef)
 	for _, ref := range s.Refs {
 		symbolRefs[s.createSymbolMapKey(ref.FilePath, ref.MethodName)] = s.newSymbolRef(ref)
 	}
-	return symbol{
+	return &definition{
 		Name:     s.Name,
 		Kind:     s.Kind,
 		FilePath: s.FilePath,
@@ -82,4 +113,13 @@ func (s *Symbol) CreateSymbol() symbol {
 
 func (s *Symbol) createSymbolMapKey(refPath, methodName string) string {
 	return fmt.Sprintf("%s:%s_%s:%s", s.FilePath, s.Name, refPath, methodName)
+}
+
+func (s *Symbol) createGithubLink(symbol *Symbol) string {
+	baseLink := config.GetBaseBranchLink()
+
+	split2 := strings.Split(strings.Split(symbol.Path, "/quickfeed/")[1], ":")
+	partialLink := split2[0] + "#L" + split2[1] + "-L" + strings.Split(split2[2], "-")[1]
+
+	return fmt.Sprintf("[%s](%s%s), ", symbol.Name, baseLink, partialLink)
 }

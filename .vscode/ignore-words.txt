@@ -1,3 +1,4 @@
+approvelist
 chzyer
 clangd
 jdtls
@@ -9,6 +10,7 @@ omnisharp
 Plotly
 promptui
 Pyright
+qtest
 rankdir
 sema
 Subfolders

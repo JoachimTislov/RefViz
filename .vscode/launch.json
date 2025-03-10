@@ -8,18 +8,6 @@
             "name": "Launch Package",
             "type": "go",
             "request": "launch",
-            "mode": "exec",
-            "program": "${workspaceFolder}/sample-code/quickfeed/refViz",
-            "args": [
-                "-scan",
-                "-content",
-                "service.go"
-            ]
-        },
-        {
-            "name": "Launch Package",
-            "type": "go",
-            "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}/src/main.go",
             "args": [
@@ -33,7 +21,7 @@
             ]
         },
         {
-            "name": "Launch Add force",
+            "name": "Launch Add content",
             "type": "go",
             "request": "launch",
             "mode": "auto",
@@ -41,11 +29,11 @@
             "args": [
                 "-add",
                 "-content",
-                "main.go",
+                "/home/yoa/RefViz/sample-code/quickfeed/main.go",
                 "-m",
-                "Test",
-                "-n",
-                "main"
+                "T",
+                "-fu",
+                "-fs"
             ]
         }
     ]

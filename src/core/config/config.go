@@ -11,9 +11,10 @@ var config = NewConfig()
 
 func NewConfig() *Config {
 	return &Config{
-		InExt:   newSbMap(".go"),
-		ExDirs:  newSbMap("node_modules", ".git"),
-		ExFiles: newSbMap(),
+		InExt:          newSbMap(".go"),
+		ExDirs:         newSbMap("node_modules", ".git"),
+		ExFiles:        newSbMap(),
+		BaseBranchLink: "https://github.com/quickfeed/quickfeed/tree/master/", // TODO: Add update feature
 	}
 }
 
@@ -33,12 +34,20 @@ type Config struct {
 	InExt   SbMap `json:"includedExtensions,omitempty"`
 	ExDirs  SbMap `json:"excludedDirectories,omitempty"`
 	ExFiles SbMap `json:"excludedFiles,omitempty"`
+	// BaseBranchLink is the link to a branch of a github repository
+	// Used to create links to a custom branch
+	// Example: https://github.com/quickfeed/quickfeed/tree/master/ is path to the master branch
+	BaseBranchLink string `json:"baseBranchLink,omitempty"`
 }
 
 type SbMap map[string]bool
 
 func Get() *Config {
 	return config
+}
+
+func GetBaseBranchLink() string {
+	return config.BaseBranchLink
 }
 
 func (c *Config) Save() error {

@@ -10,7 +10,7 @@ import (
 	"github.com/JoachimTislov/RefViz/internal/types"
 )
 
-func parseRefs(output string, refs *map[string]*types.Ref) error {
+func parseRefs(output string, childSymbol *types.Symbol, relPath string) error {
 	lines := strings.Split(output, "\n")
 	for _, line := range lines {
 		if line == "" {
@@ -23,7 +23,7 @@ func parseRefs(output string, refs *map[string]*types.Ref) error {
 		fileName := filepath.Base(path)
 		folderName := filepath.Base(filepath.Dir(path))
 
-		parentSymbolName, hasParent, err := findParent(path, LinePos)
+		parentSymbol, hasParent, err := findParent(path, LinePos)
 		if !hasParent {
 			// Skip if no parent symbol is found
 			cache.LogError(err.Error())
@@ -32,13 +32,15 @@ func parseRefs(output string, refs *map[string]*types.Ref) error {
 		if err != nil {
 			return fmt.Errorf("error getting related method: %s, err: %v", path, err)
 		}
-		(*refs)[path] = &types.Ref{
-			Path:       fmt.Sprintf("%s:%s:%s", path, args[1], args[2]),
+		key := fmt.Sprintf("%s:%s", path, parentSymbol.Name)
+		childSymbol.Refs[key] = &types.Ref{
+			Path:       line,
 			FilePath:   path,
 			FolderName: folderName,
 			FileName:   fileName,
-			MethodName: *parentSymbolName,
+			MethodName: parentSymbol.Name,
 		}
+		parentSymbol.AddChildSymbol(childSymbol.Name, childSymbol.FilePath, relPath)
 	}
 	return nil
 }
@@ -49,7 +51,7 @@ const (
 )
 
 // findParent finds the closest method above the reference
-func findParent(path string, refLinePos string) (*string, bool, error) {
+func findParent(path string, refLinePos string) (*types.Symbol, bool, error) {
 	c, _, err := symbol.GetMany(path, false)
 	if err != nil {
 		return nil, false, fmt.Errorf("error getting symbols: %s, err: %v", path, err)
@@ -60,6 +62,9 @@ func findParent(path string, refLinePos string) (*string, bool, error) {
 	var parentSymbol *types.Symbol
 	// loop through potential parent symbols
 	for _, s := range c.Symbols {
+
+		// TODO: filter out wanted parent symbols
+
 		// Initialize parentSymbol with the first symbol
 		if parentSymbol == nil {
 			parentSymbol = s
@@ -74,5 +79,5 @@ func findParent(path string, refLinePos string) (*string, bool, error) {
 	if parentSymbol == nil {
 		return nil, false, fmt.Errorf("no parent symbol found for %s", path)
 	}
-	return &parentSymbol.Name, true, nil
+	return parentSymbol, true, nil
 }

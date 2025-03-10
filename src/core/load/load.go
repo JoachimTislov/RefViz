@@ -1,4 +1,4 @@
-package core
+package load
 
 import (
 	"fmt"
@@ -11,10 +11,9 @@ import (
 	"github.com/JoachimTislov/RefViz/internal/utils"
 )
 
-func LoadDefs() error {
-	if err := loadRootPath(); err != nil {
-		return fmt.Errorf("error loading root path: %v", err)
-	}
+func Defs() error {
+	_ = path.Project() // load project path, will panic if is fails
+
 	if err := initFolder(); err != nil {
 		return fmt.Errorf("error initializing project folder: %v", err)
 	}
@@ -23,18 +22,6 @@ func LoadDefs() error {
 	}
 	if err := loadCache(); err != nil {
 		return fmt.Errorf("error loading cache: %v", err)
-	}
-	return nil
-}
-
-// loadRootPath loads the root path of the project and sets it
-func loadRootPath() error {
-	root, err := path.GetProjectRoot()
-	if err != nil {
-		return err
-	}
-	if err := path.SetProject(root); err != nil {
-		return err
 	}
 	return nil
 }

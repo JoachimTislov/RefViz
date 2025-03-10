@@ -7,14 +7,15 @@ import (
 	"os/exec"
 
 	c "github.com/JoachimTislov/RefViz/content"
-	"github.com/JoachimTislov/RefViz/core"
+	"github.com/JoachimTislov/RefViz/core/cache"
+	"github.com/JoachimTislov/RefViz/core/load"
 	"github.com/JoachimTislov/RefViz/internal/ops"
 	"github.com/JoachimTislov/RefViz/internal/path"
 	"github.com/JoachimTislov/RefViz/mappers"
 )
 
 func init() {
-	if err := core.LoadDefs(); err != nil {
+	if err := load.Defs(); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -30,6 +31,8 @@ func main() {
 	mapName := flag.String("m", "", "map name")
 	nodeName := flag.String("n", "", "node name")
 	scan := flag.Bool("scan", false, "scan the project for content")
+	findSemiOrphans := flag.Bool("scan.Orphans", false, "find semi-orphans")
+	unusedSymbol := flag.Bool("scan.Unused", false, "find unused symbols")
 	add := flag.Bool("add", false, "add content to map")
 	content := flag.String("content", "", "content to scan, file or folder")
 	display := flag.Bool("display", false, "display the map")
@@ -42,9 +45,15 @@ func main() {
 	ops.Check(lm, ln, create, add, delete, mapName, nodeName, content, forceScan, forceUpdate, ask)
 
 	if *scan {
-		if err := c.Scan(content, forceScan, ask); err != nil {
+		if err := c.Scan(content, *forceScan, *ask); err != nil {
 			log.Fatalf("Error scanning content: %v\n", err)
 		}
+	}
+	if *findSemiOrphans {
+		cache.QuickfeedFindSemiOrphans()
+	}
+	if *unusedSymbol {
+		cache.UnusedSymbols()
 	}
 	// Update the if graphviz flag is set or map name is provided and user wants to display the map
 	if *mapName != "" && *display {

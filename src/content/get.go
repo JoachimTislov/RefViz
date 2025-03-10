@@ -27,13 +27,13 @@ func Get(path string, scanAgain bool, everythingIsUpToDate *bool) func() error {
 				if s.Refs == nil {
 					s.Refs = make(map[string]*types.Ref)
 				}
-				jobs = append(jobs, ref.Get(path, s, &s.Refs))
+				jobs = append(jobs, ref.Get(path, s))
 			}
 		}
 		routines.StartWork(3, jobs)
 
-		if scannedForSymbols {
-			if scannedForRefs {
+		if scannedForRefs {
+			if scannedForSymbols {
 				log.Println("Found content for path: ", path)
 				if everythingIsUpToDate != nil {
 					*everythingIsUpToDate = false
@@ -41,8 +41,7 @@ func Get(path string, scanAgain bool, everythingIsUpToDate *bool) func() error {
 			} else {
 				log.Println("No references to scan for in path: ", path)
 			}
-		}
-		if scannedForRefs {
+
 			log.Printf("Final caching for path: %s\n", path)
 
 			if err := cache.CacheEntry(c, path); err != nil {
