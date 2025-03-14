@@ -9,6 +9,8 @@ import (
 
 var config = NewConfig()
 
+const Name = "config.json"
+
 func NewConfig() *Config {
 	return &Config{
 		InExt:          newSbMap(".go"),
@@ -50,8 +52,8 @@ func GetBaseBranchLink() string {
 	return config.BaseBranchLink
 }
 
-func (c *Config) Save() error {
-	if err := internal.MarshalAndWriteToFile(config, path.Config()); err != nil {
+func (c *Config) save() error {
+	if err := internal.MarshalAndWriteToFile(config, path.Tmp(Name)); err != nil {
 		return fmt.Errorf("error updating configurations: %v", err)
 	}
 	return nil

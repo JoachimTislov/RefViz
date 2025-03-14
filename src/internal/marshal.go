@@ -4,12 +4,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
+
+	"github.com/JoachimTislov/RefViz/internal/utils"
 )
 
 func MarshalAndWriteToFile(v any, filePath string) error {
 	bytes, err := marshal(v)
 	if err != nil {
 		return err
+	}
+	dir := filepath.Dir(filePath)
+	if !utils.Exists(dir) {
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			return fmt.Errorf("error when creating directory: %s, err: %s", dir, err)
+		}
 	}
 	if err := os.WriteFile(filePath, bytes, 0o644); err != nil {
 		return fmt.Errorf("error when writing to file: %s, err: %s", filePath, err)

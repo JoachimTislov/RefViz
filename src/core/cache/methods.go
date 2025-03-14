@@ -23,6 +23,20 @@ func unlock() {
 	cacheMutex.Unlock()
 }
 
+func Get() *types.Cache {
+	lock()
+	defer unlock()
+
+	return cache
+}
+
+func Reset() {
+	lock()
+	defer unlock()
+
+	cache = newCache()
+}
+
 func LogError(command string) {
 	lock()
 	defer unlock()
@@ -40,7 +54,7 @@ func addEntry(relPath string, entry *types.CacheEntry) {
 	cache.Entries[relPath] = *entry
 }
 
-func GetEntry(relPath string) *types.CacheEntry {
+func getEntry(relPath string) *types.CacheEntry {
 	lock()
 	defer unlock()
 
@@ -73,7 +87,7 @@ func save() error {
 	lock()
 	defer unlock()
 
-	return internal.MarshalAndWriteToFile(cache, path.Cache())
+	return internal.MarshalAndWriteToFile(cache, path.Tmp(Name))
 }
 
 func AddUnusedSymbol(relPath string, name string, symbol types.OrphanSymbol) {

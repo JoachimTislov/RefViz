@@ -8,6 +8,7 @@ import (
 
 	"github.com/JoachimTislov/RefViz/internal/graphMap"
 	"github.com/JoachimTislov/RefViz/internal/path"
+	"github.com/JoachimTislov/RefViz/internal/utils"
 )
 
 func CreateGraphvizFile(mapName *string) error {
@@ -35,7 +36,7 @@ func CreateGraphvizFile(mapName *string) error {
 }
 
 func createDotFile(mapName *string) (*os.File, error) {
-	file, err := os.Create(path.DotFile(mapName))
+	file, err := utils.CreateFile(path.DotFile(mapName))
 	if err != nil {
 		return nil, fmt.Errorf("error creating dot file: %v", err)
 	}
@@ -61,9 +62,10 @@ func createTemplate(mapName *string) (*template.Template, error) {
 // recursive template with nested definitions
 // Whitespace control: https://golang.org/pkg/text/template/#hdr-Text_and_spaces, its a bit tricky
 const tmpl = `digraph {{.Name}} {
+	graph [nodesep=2, ranksep=3];  // Controls spacing
+	node [shape=box, style=filled, fillcolor=lightblue fontsize=18];  // Styles nodes
 {{- range $name, $node := .Nodes}}
 	subgraph {{$name}} {
-		rankdir=TB;
 		{{- template "graph" $node.RootFolder }}
 	}
 {{- end}}
@@ -71,7 +73,7 @@ const tmpl = `digraph {{.Name}} {
 		{{- $symbolRefs := index . 0}}
 		{{- $folderName := index . 1}}
 		{{- range $symbolRef := $symbolRefs}}
-				{{$folderName}}_{{trimSpace $symbolRef.Definition.Name}} -> {{$symbolRef.Ref.FolderName}}_{{trimSpace $symbolRef.Ref.MethodName}};
+				{{$folderName}}_{{trimSpace $symbolRef.Definition.Name}} -> {{$symbolRef.Ref.FolderName}}_{{trimSpace $symbolRef.Ref.MethodName}} [color=blue, penwidth=2, style=dashed];
 		{{- end}}
 	{{- end}}
 {{- define "subgraph" -}}
@@ -83,17 +85,15 @@ const tmpl = `digraph {{.Name}} {
 {{- end}}
 {{- define "graph" -}}
 		{{- $folderName := .FolderName}} {{- /* to avoid issues in files loop */ -}}
-		{{- if .Files}}		
+		{{- if .Files}}
 		subgraph cluster_{{replace .FolderName "-" "_"}} {
 			label = "{{.FolderName}} (folder)";
-			rankdir=TB;
 			{{- range $file := .Files}}
 			subgraph cluster_{{replace (replace $file.Name "." "_") "-" "_"}} {
 				label = "{{$file.Name}}";
 				labelloc="t";
-				rankdir=TB;
 				{{- range $symbol := $file.Symbols}}
-				{{$folderName}}_{{trimSpace $symbol.Name}} [label = "{{trimSpace $symbol.Name}}";shape = box;];
+				{{$folderName}}_{{trimSpace $symbol.Name}} [label = "{{trimSpace $symbol.Name}}";];
 					{{- template "refs" (arr $symbol.Refs $folderName) -}}
 				{{- end}}
 			}

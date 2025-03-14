@@ -3,7 +3,6 @@ package graphMap
 import (
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/JoachimTislov/RefViz/internal/path"
 	"github.com/JoachimTislov/RefViz/internal/prompt"
@@ -25,7 +24,7 @@ func Create(name *string) error {
 		}
 		act = "overwritten"
 	}
-	if _, err := os.Create(mapPath); err != nil {
+	if _, err := utils.CreateFile(mapPath); err != nil {
 		return fmt.Errorf("error creating map: %v", err)
 	}
 	m := types.NewMap(name)

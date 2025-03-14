@@ -57,7 +57,10 @@ func main() {
 	}
 	// Update the if graphviz flag is set or map name is provided and user wants to display the map
 	if *mapName != "" && *display {
-		graphviz = mapName
+		cmd := exec.Command("xdot", path.DotFile(mapName))
+		if err := cmd.Start(); err != nil {
+			log.Fatalf("Please install xdot with: sudo apt-get install xdot, its used to display the graph")
+		}
 	} else if *mapName == "" && *display {
 		log.Fatal("Please provide a map name to display")
 	}
@@ -67,11 +70,6 @@ func main() {
 		// Extension: tintinweb.graphviz-interactive-preview, can display the graph in vscode
 		if err := mappers.CreateGraphvizFile(graphviz); err != nil {
 			log.Fatalf("error creating graphviz map: %v", err)
-		}
-
-		cmd := exec.Command("xdot", path.DotFile(graphviz))
-		if err := cmd.Start(); err != nil {
-			log.Fatalf("Please install xdot with: sudo apt-get install xdot, its used to display the graph")
 		}
 	}
 }

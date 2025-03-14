@@ -4,18 +4,24 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/JoachimTislov/RefViz/internal"
 	"github.com/JoachimTislov/RefViz/internal/path"
 	"github.com/JoachimTislov/RefViz/internal/types"
 )
 
-var cache = NewCache()
+var cache = newCache()
 
-func Get() *types.Cache {
-	return cache
+const Name = "cache.json"
+
+func Set(c *types.Cache) {
+	cache = c
 }
 
-func ResetCache() {
-	cache = NewCache()
+// Clear resets the cache to the initial state
+func Clear() {
+	if err := internal.MarshalAndWriteToFile(newCache(), path.Tmp(Name)); err != nil {
+		fmt.Printf("error clearing cache: %v\n", err)
+	}
 }
 
 func Check(filePath string) (*types.CacheEntry, error) {
@@ -23,7 +29,7 @@ func Check(filePath string) (*types.CacheEntry, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error getting relative path: %s, err: %v", filePath, err)
 	}
-	return GetEntry(relPath), nil
+	return getEntry(relPath), nil
 }
 
 // cacheEntry caches the cache entry
@@ -39,7 +45,7 @@ func CacheEntry(cacheEntry *types.CacheEntry, filePath string) error {
 	return nil
 }
 
-func NewCache() *types.Cache {
+func newCache() *types.Cache {
 	return &types.Cache{
 		Errors:        []string{},
 		UnusedSymbols: make(map[string]map[string]types.OrphanSymbol),

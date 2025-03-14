@@ -17,14 +17,13 @@ func TestGet(t *testing.T) {
 	key := mainPath + ":main"
 	wantRefs[key] = helpers.CheckDomainRefInQFMain
 
-	qfCheckDomain := helpers.QFCheckDomain
-	qfCheckDomain.Refs = make(map[string]*types.Ref)
+	helpers.QFCheckDomain.Refs = make(map[string]*types.Ref)
 
-	if err := ref.Get(mainPath, qfCheckDomain)(); err != nil {
+	if err := ref.Get(mainPath, helpers.QFCheckDomain)(); err != nil {
 		t.Fatalf("ref Get() failed: %v", err)
 	}
 
-	if diff := cmp.Diff(qfCheckDomain.Refs, wantRefs); diff != "" {
+	if diff := cmp.Diff(helpers.QFCheckDomain.Refs, wantRefs); diff != "" {
 		t.Errorf("ref Get() mismatch (-got +want):\n%s", diff)
 	}
 }

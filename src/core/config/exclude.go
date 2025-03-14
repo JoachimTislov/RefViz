@@ -13,5 +13,5 @@ func exclude(m *SbMap, items ...string) error {
 			return fmt.Errorf("invalid exclusion: %s", items[i])
 		}
 	}
-	return config.Save()
+	return config.save()
 }

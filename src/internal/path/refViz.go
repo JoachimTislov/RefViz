@@ -15,6 +15,7 @@ const (
 	customPath = "/sample-code" // /sample-code/quickfeed
 )
 
+// Project loads the project path, and will panic if is fails
 func Project() string {
 	path := os.Getenv(refVizRootPath)
 	if path == "" {
@@ -33,16 +34,12 @@ func Project() string {
 func loadRoot() error {
 	root, err := getProjectRoot()
 	if err != nil {
-		return err
+		return fmt.Errorf("error getting project root, err: %v", err)
 	}
-	if err := setProjectRoot(root); err != nil {
-		return err
+	if err := os.Setenv(refVizRootPath, root); err != nil {
+		return fmt.Errorf("error setting env %s, err: %v", refVizRootPath, err)
 	}
 	return nil
-}
-
-func setProjectRoot(path string) error {
-	return os.Setenv(refVizRootPath, path)
 }
 
 func GetMap(name string) string {
@@ -52,43 +49,23 @@ func GetMap(name string) string {
 	return filepath.Join(Map(), name)
 }
 
-func GetAbs(path string) (string, error) {
-	absPath, err := filepath.Abs(path)
-	if err != nil {
-		return "", fmt.Errorf("error getting absolute path of file: %s, err: %v", path, err)
-	}
-	return absPath, nil
-}
-
-func getRoot(name string) string {
-	return filepath.Join(Project(), name)
-}
-
-func Config() string {
-	return getRoot(tmp("config.json"))
-}
-
-func Cache() string {
-	return getRoot(tmp("cache.json"))
-}
-
-func GetTempFolder() string {
-	return getRoot(tempFolder)
-}
-
-// tmp returns the path of the temporary folder
-func tmp(name string) string {
-	return filepath.Join(tempFolder, name)
+func Tmp(name string) string {
+	return getRoot(tmp(name))
 }
 
 func Map() string {
 	return getRoot(tmp("maps"))
 }
 
-func Graphviz() string {
-	return getRoot(tmp("graphviz"))
+func DotFile(mapName *string) string {
+	return filepath.Join(getRoot(tmp("graphviz")), fmt.Sprintf("%s.dot", *mapName))
 }
 
-func DotFile(mapName *string) string {
-	return filepath.Join(Graphviz(), fmt.Sprintf("%s.dot", *mapName))
+func getRoot(name string) string {
+	return filepath.Join(Project(), name)
+}
+
+// tmp returns the path of the temporary folder
+func tmp(name string) string {
+	return filepath.Join(tempFolder, name)
 }
