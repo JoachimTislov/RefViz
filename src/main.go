@@ -8,6 +8,7 @@ import (
 
 	c "github.com/JoachimTislov/RefViz/content"
 	"github.com/JoachimTislov/RefViz/core/cache"
+	"github.com/JoachimTislov/RefViz/core/config"
 	"github.com/JoachimTislov/RefViz/core/load"
 	"github.com/JoachimTislov/RefViz/internal/ops"
 	"github.com/JoachimTislov/RefViz/internal/path"
@@ -39,7 +40,17 @@ func main() {
 	forceScan := flag.Bool("fs", false, "force scan, ignores cache")
 	forceUpdate := flag.Bool("fu", false, "force update map content")
 	ask := flag.Bool("a", false, "select content to add to map")
+	exDir := flag.String("ex.dir", "", "exclude directory")
+	exFile := flag.String("ex.file", "", "exclude file")
+	inExt := flag.String("in.ext", "", "include extension")
+	baseLinkToBranch := flag.String("baseLink", "", "base link to branch of a github repository")
+	exSymbol := flag.String("ex.symbol", "", "exclude symbol")
+	exFindRefsForSymbols := flag.String("ex.RefsForSymbols.Name", "", "exclude find refs for symbols")
+	exFindRefsForSymbolsPrefix := flag.String("ex.RefsForSymbols.Prefix", "", "exclude find refs for symbols prefix")
 	flag.Parse()
+
+	config.Exclude(exDir, exFile, inExt, exSymbol, exFindRefsForSymbols, exFindRefsForSymbolsPrefix)
+	config.SetBaseBranchLink(*baseLinkToBranch)
 
 	// Determine if map operations are to be performed
 	ops.Check(lm, ln, create, add, delete, mapName, nodeName, content, forceScan, forceUpdate, ask)

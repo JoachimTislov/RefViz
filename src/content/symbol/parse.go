@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/JoachimTislov/RefViz/content/position"
+	"github.com/JoachimTislov/RefViz/core/config"
 	"github.com/JoachimTislov/RefViz/internal/types"
 )
 
@@ -23,6 +24,12 @@ func parseSymbols(output, filePath string, s *map[string]*types.Symbol) {
 			continue
 		}
 		name := strings.TrimSpace(strings.Join(args[:l-2], " ")) // name is everything except the last 2 elements
+
+		// skip excluded symbols
+		if config.NotValidSymbol(name) {
+			continue
+		}
+
 		kind := args[l-2]
 		// for methods, remove the receiver type
 		// (*Service[K, V]).SendTo Method -> SendTo
