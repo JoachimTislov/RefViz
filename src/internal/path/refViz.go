@@ -20,7 +20,7 @@ func Project() string {
 	path := os.Getenv(refVizRootPath)
 	if path == "" {
 		if err := loadRoot(); err != nil {
-			panic(fmt.Sprintf("error loading root path: %v", err))
+			panic(fmt.Errorf("error loading root path: %w", err))
 		}
 		path = os.Getenv(refVizRootPath)
 	}
@@ -34,7 +34,7 @@ func Project() string {
 func loadRoot() error {
 	root, err := getProjectRoot()
 	if err != nil {
-		return fmt.Errorf("error getting project root, err: %v", err)
+		return fmt.Errorf("error getting project root, err: %w", err)
 	}
 	if err := os.Setenv(refVizRootPath, root); err != nil {
 		return fmt.Errorf("error setting env %s, err: %v", refVizRootPath, err)

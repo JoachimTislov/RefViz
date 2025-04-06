@@ -3,6 +3,7 @@ package ref
 import (
 	"fmt"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strconv"
 	"strings"
@@ -20,13 +21,21 @@ func parseRefs(output string, childSymbol *types.Symbol, relPath string) error {
 			continue
 		}
 		args := strings.Split(line, ":")
-		path := args[0]
-		LinePos := args[1]
+		var path string
+		var linePos string
+		switch runtime.GOOS {
+		case "linux":
+			path = args[0]
+			linePos = args[1]
+		case "windows":
+			path = strings.Join(args[:len(args)-2], ":")
+			linePos = args[len(args)-2]
+		}
 
 		fileName := filepath.Base(path)
 		folderName := filepath.Base(filepath.Dir(path))
 
-		parentSymbol, hasParent, err := findParent(path, LinePos)
+		parentSymbol, hasParent, err := findParent(path, linePos)
 		if !hasParent {
 			// Skip if no parent symbol is found
 			cache.LogError(err.Error())
@@ -47,11 +56,6 @@ func parseRefs(output string, childSymbol *types.Symbol, relPath string) error {
 	}
 	return nil
 }
-
-const (
-	function = "Function"
-	method   = "Method"
-)
 
 // findParent finds the closest method above the reference
 func findParent(path string, refLinePos string) (*types.Symbol, bool, error) {

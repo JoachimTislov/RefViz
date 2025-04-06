@@ -14,7 +14,8 @@ func TestRunGopls(t *testing.T) {
 	// This is the expected output of the test
 	output := "init Function 28:6-28:10\nmain Function 46:6-46:10\ncheckDomain Function 165:6-165:17\n"
 
-	out, err := lsp.RunGopls(project, "symbols", "/home/yoa/RefViz/sample-code/quickfeed/main.go")
+	mainPath := path.QuickfeedRootMain()
+	out, err := lsp.RunGopls(project, "symbols", mainPath)
 	if err != nil {
 		t.Fatalf("RunGopls() failed: %v", err)
 	}
@@ -25,8 +26,8 @@ func TestRunGopls(t *testing.T) {
 
 	// References
 
-	output = "/home/yoa/RefViz/sample-code/quickfeed/main.go:88:51-62\n"
-	out, err = lsp.RunGopls(project, "references", "/home/yoa/RefViz/sample-code/quickfeed/main.go:165:6-10")
+	output = mainPath + ":88:51-62\n"
+	out, err = lsp.RunGopls(project, "references", mainPath+":165:6-10")
 	if err != nil {
 		t.Fatalf("RunGopls() failed: %v", err)
 	}

@@ -12,7 +12,7 @@ import (
 )
 
 func TestGetOne(t *testing.T) {
-	main := path.Quickfeed() + "/main.go"
+	main := path.QuickfeedRootMain()
 
 	symbol, err := symbol.GetOne(main, "main", false)
 	if err != nil {
@@ -31,7 +31,7 @@ func TestGetOne(t *testing.T) {
 }
 
 func TestGetMany(t *testing.T) {
-	main := path.Quickfeed() + "/main.go"
+	main := path.QuickfeedRootMain()
 	want := cache.NewCacheEntry("main.go", 0, helpers.MainFileSymbols)
 
 	cacheEntry, _, err := symbol.GetMany(main, false)

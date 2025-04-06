@@ -20,10 +20,10 @@ func getProjectRoot() (string, error) {
 		return gitRoot, nil
 	}
 	root, err := root()
-	if err == nil {
-		return root, nil
+	if err != nil {
+		return "", fmt.Errorf("error getting project root: %v", err)
 	}
-	return "", fmt.Errorf("error getting project root: %v", err)
+	return root, nil
 }
 
 // rootGitProject returns the root directory of the git project

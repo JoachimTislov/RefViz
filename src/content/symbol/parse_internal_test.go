@@ -13,9 +13,7 @@ func TestParseSymbols(t *testing.T) {
 	// Taken from quickfeed/main.go, expected output of gopls symbols command: "gopls symbols *path/to/main.go*"
 	output := "init Function 28:6-28:10\nmain Function 46:6-46:10\ncheckDomain Function 165:6-165:17\n"
 	s := make(map[string]*types.Symbol)
-
-	quickfeed := path.Quickfeed()
-	main := quickfeed + "/main.go"
+	main := path.QuickfeedRootMain()
 
 	parseSymbols(output, main, &s)
 

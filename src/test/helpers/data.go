@@ -7,7 +7,7 @@ import (
 
 // Taken Quickfeed's main.go
 
-var mainPath = path.Quickfeed() + "/main.go"
+var mainPath = path.QuickfeedRootMain()
 
 var MainFileSymbols = map[string]*types.Symbol{
 	"checkDomain": QFCheckDomain,

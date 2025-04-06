@@ -12,7 +12,7 @@ import (
 func TestFind(t *testing.T) {
 
 	// Test absolute path to main.go
-	content := filepath.Join(path.Quickfeed(), "main.go")
+	content := path.QuickfeedRootMain()
 	want := []string{content}
 
 	paths, err := c.Find(&content, false)
@@ -36,7 +36,7 @@ func TestFind(t *testing.T) {
 
 	// Test name of file
 	content = "save.go"
-	want = []string{"/home/yoa/RefViz/sample-code/quickfeed/internal/env/save.go"}
+	want = []string{filepath.Join(path.Quickfeed(), "internal", "env", "save.go")}
 	paths, err = c.Find(&content, false)
 	if err != nil {
 		t.Fatalf("Find() failed: %v", err)
@@ -47,7 +47,7 @@ func TestFind(t *testing.T) {
 
 	// Test name of directory
 	content = "env"
-	want = []string{"/home/yoa/RefViz/sample-code/quickfeed/internal/env"}
+	want = []string{filepath.Join(path.Quickfeed(), "internal", "env")}
 	paths, err = c.Find(&content, false)
 	if err != nil {
 		t.Errorf("Got: %v, want: %v", paths, want)

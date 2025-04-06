@@ -1,6 +1,7 @@
 package ref
 
 import (
+	"fmt"
 	"path/filepath"
 	"testing"
 
@@ -64,7 +65,7 @@ func TestFindParent(t *testing.T) {
 
 func TestParseRefs(t *testing.T) {
 	mainPath := path.QuickfeedRootMain()
-	output := mainPath + ":88:51-62\n"
+	output := fmt.Sprintf("%s:%s", mainPath, "88:51-62\n")
 	helpers.QFCheckDomain.Refs = make(map[string]*types.Ref)
 	want := map[string]*types.Ref{
 		mainPath + ":main": helpers.CheckDomainRefInQFMain,
@@ -89,7 +90,7 @@ func TestParseRefs(t *testing.T) {
 	}
 
 	childCheckDomain := &types.ChildSymbol{
-		Key:      "quickfeed/main.go",
+		Key:      filepath.Join("quickfeed", "main.go"),
 		FilePath: mainPath,
 	}
 
