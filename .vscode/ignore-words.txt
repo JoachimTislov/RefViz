@@ -1,12 +1,14 @@
 approvelist
 chzyer
 clangd
+Fset
 jdtls
 labelloc
 lsprpc
 manifoldco
 myproject
 omnisharp
+pkgs
 Plotly
 promptui
 Pyright

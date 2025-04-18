@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 
 	"github.com/JoachimTislov/RefViz/core/cache"
+	"github.com/JoachimTislov/RefViz/internal/lsp"
 	p "github.com/JoachimTislov/RefViz/internal/path"
 	"github.com/JoachimTislov/RefViz/internal/types"
-	"github.com/JoachimTislov/RefViz/lsp"
 )
 
 const (

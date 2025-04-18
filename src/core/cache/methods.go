@@ -147,5 +147,5 @@ func checkRefs(symbol *types.Symbol) {
 			return
 		}
 	}
-	fmt.Printf(createGithubLink(symbol, "https://github.com/quickfeed/quickfeed/tree/master/"))
+	fmt.Print(createGithubLink(symbol, "https://github.com/quickfeed/quickfeed/tree/master/"))
 }

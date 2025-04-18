@@ -15,7 +15,7 @@ var MainFileSymbols = map[string]*types.Symbol{
 		Name: "init",
 		Kind: "Function",
 		Position: types.Position{
-			Line:      "28",
+			Line:      28,
 			CharRange: "6-10",
 		},
 		Path:     mainPath + ":28:6-28:10",
@@ -28,7 +28,7 @@ var QFCheckDomain = &types.Symbol{
 	Name: "checkDomain",
 	Kind: "Function",
 	Position: types.Position{
-		Line:      "165",
+		Line:      165,
 		CharRange: "6-17",
 	},
 	Path:     mainPath + ":165:6-165:17",
@@ -47,7 +47,7 @@ var QFMain = &types.Symbol{
 	Name: "main",
 	Kind: "Function",
 	Position: types.Position{
-		Line:      "46",
+		Line:      46,
 		CharRange: "6-10",
 	},
 	Path:     mainPath + ":46:6-46:10",

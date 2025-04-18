@@ -12,7 +12,8 @@ import (
 	"github.com/JoachimTislov/RefViz/core/load"
 	"github.com/JoachimTislov/RefViz/internal/ops"
 	"github.com/JoachimTislov/RefViz/internal/path"
-	"github.com/JoachimTislov/RefViz/mappers"
+	"github.com/JoachimTislov/RefViz/internal/lsp/ast"
+	"github.com/JoachimTislov/RefViz/internal/mappers"
 )
 
 func init() {
@@ -24,6 +25,9 @@ func init() {
 const entities = "map or a node"
 
 func main() {
+	manager := ast.NewManager(path.Quickfeed())
+	manager.GetSymbols()
+
 	graphviz := flag.String("graphviz", "", "generate graphviz file with the given map")
 	lm := flag.Bool("lm", false, "list maps")
 	ln := flag.Bool("ln", false, "list nodes")

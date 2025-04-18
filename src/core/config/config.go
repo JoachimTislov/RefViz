@@ -83,7 +83,9 @@ func SetBaseBranchLink(link string) {
 		return
 	}
 	config.BaseBranchLink = link
-	save()
+	if err := save(); err != nil {
+		fmt.Printf("Error saving base branch link: %v\n", err)
+	}
 }
 
 func save() error {

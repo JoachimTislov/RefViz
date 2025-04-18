@@ -24,7 +24,7 @@ func TestGetOne(t *testing.T) {
 		Kind:     "Function",
 		Path:     main + ":46:6-46:10",
 		FilePath: main,
-		Position: types.Position{Line: "46", CharRange: "6-10"},
+		Position: types.Position{Line: 46, CharRange: "6-10"},
 	}); diff != "" {
 		t.Errorf("GetOne() mismatch (-got +want):\n%s", diff)
 	}

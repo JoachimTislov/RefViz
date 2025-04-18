@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/JoachimTislov/RefViz/content/symbol"
@@ -68,18 +67,18 @@ func findParent(path string, refLinePos string) (*types.Symbol, bool, error) {
 	}
 	symbols := utils.ConvertMapToSlice(c.Symbols)
 	sort.Slice(symbols, func(i, j int) bool {
-		return atoiOrPanic(symbols[i].Position.Line) < atoiOrPanic(symbols[j].Position.Line)
+		return symbols[i].Position.Line < symbols[j].Position.Line
 	})
 	if len(symbols) == 1 {
 		return symbols[0], true, nil
 	}
 
-	refPos := atoiOrPanic(refLinePos)
+	refPos := utils.Atoi(refLinePos)
 	var parentSymbol *types.Symbol
 
 	// loop through potential parent symbols
 	for _, s := range symbols {
-		symbolPos := atoiOrPanic(s.Position.Line)
+		symbolPos := s.Position.Line
 		if symbolPos < refPos {
 			parentSymbol = s
 		} else {
@@ -90,12 +89,4 @@ func findParent(path string, refLinePos string) (*types.Symbol, bool, error) {
 		return nil, false, fmt.Errorf("no parent symbol found for %s", path)
 	}
 	return parentSymbol, true, nil
-}
-
-func atoiOrPanic(s string) int {
-	n, err := strconv.Atoi(s)
-	if err != nil {
-		panic(fmt.Sprintf("invalid int: %s, err: %v", s, err))
-	}
-	return n
 }

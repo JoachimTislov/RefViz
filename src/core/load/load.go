@@ -13,15 +13,16 @@ import (
 // loadConfig creates default config file if it does not exist
 // If the file does exist it reads the file and unmarshals it into the config variable
 func loadConfig(name string) error {
-	if err := File(path.Tmp(name), config.Get()); err != nil {
-		return fmt.Errorf("error loading configurations: %v", err)
-	}
-	return nil
+	return loadData(name, config.Get)
 }
 
 func loadCache(name string) error {
-	if err := File(path.Tmp(name), cache.Get()); err != nil {
-		return fmt.Errorf("error loading cache: %v", err)
+	return loadData(name, cache.Get)
+}
+
+func loadData[O any](name string, objectGetter func() O) error {
+	if err := File(path.Tmp(name), objectGetter()); err != nil {
+		return fmt.Errorf("error loading data for %s, err: %w", name, err)
 	}
 	return nil
 }

@@ -15,9 +15,11 @@ type Symbol struct {
 	Position     Position                `json:"position,omitempty"`
 	Path         string                  `json:"path,omitempty"`
 	FilePath     string                  `json:"filePath,omitempty"`
+	Children     []*Symbol               `json:"children,omitempty"`
 	ChildSymbols map[string]*ChildSymbol `json:"childSymbols,omitempty"`
 	Refs         map[string]*Ref         `json:"refs,omitempty"`
-	ZeroRefs     bool                    `json:"zeroRefs,omitempty"` // if true, the symbol has no references
+	// if true, the symbol has no references
+	ZeroRefs bool `json:"zeroRefs,omitempty"`
 }
 
 type ChildSymbol struct {
