@@ -10,10 +10,10 @@ import (
 	"github.com/JoachimTislov/RefViz/core/cache"
 	"github.com/JoachimTislov/RefViz/core/config"
 	"github.com/JoachimTislov/RefViz/core/load"
+	ast "github.com/JoachimTislov/RefViz/internal/ast/go"
+	"github.com/JoachimTislov/RefViz/internal/mappers"
 	"github.com/JoachimTislov/RefViz/internal/ops"
 	"github.com/JoachimTislov/RefViz/internal/path"
-	"github.com/JoachimTislov/RefViz/internal/lsp/ast"
-	"github.com/JoachimTislov/RefViz/internal/mappers"
 )
 
 func init() {
