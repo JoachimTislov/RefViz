@@ -4,10 +4,10 @@ on:
   push:
     branches: [main]
     paths:
-      - "**.go"
+      - 'src/**/*.go'
   pull_request:
     paths:
-      - "**.go"
+      - 'src/**/*.go'
 permissions:
   contents: read
   pull-requests: read

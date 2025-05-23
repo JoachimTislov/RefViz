@@ -3,10 +3,10 @@ on:
   push:
     branches: [main]
     paths:
-      - "**.go"
+      - 'src/**/*.go'
   pull_request:
     paths:
-      - "**.go"
+      - 'src/**/*.go'
 
 jobs:
   test:
