@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt" // Added import for fmt.Errorf
-	"log"
 	"strings"
 )
 
