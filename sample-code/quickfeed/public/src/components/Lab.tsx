@@ -6,6 +6,7 @@ import { useAppState, useActions } from '../overmind'
 import CourseLinks from "./CourseLinks"
 import LabResultTable from "./LabResultTable"
 import ReviewResult from './ReviewResult'
+import { CenteredMessage, KnownMessage } from './CenteredMessage'
 
 interface MatchProps {
     id: string
@@ -15,8 +16,7 @@ interface MatchProps {
 /** Lab displays a submission based on the /course/:id/lab/:lab route if the user is a student.
  *  If the user is a teacher, Lab displays the currently selected submission.
  */
-const Lab = (): JSX.Element => {
-
+const Lab = () => {
     const state = useAppState()
     const actions = useActions()
     const { id, lab } = useParams<MatchProps>()
@@ -41,37 +41,39 @@ const Lab = (): JSX.Element => {
             assignment = state.assignments[courseID].find(a => a.ID === submission?.AssignmentID) ?? null
         } else {
             // Retrieve the student's submission
-
             assignment = state.assignments[courseID]?.find(a => a.ID === assignmentID) ?? null
             if (!assignment) {
-                return <div>Assignment not found</div>
+                return <CenteredMessage message={KnownMessage.StudentNoAssignment} />
             }
-            const submissions = state.submissions.ForAssignment(assignment) ?? null
-            if (!submissions) {
-                return <div>No submissions found</div>
+            const submissions = state.submissions.ForAssignment(assignment)
+            if (submissions.length === 0) {
+                return <CenteredMessage message={KnownMessage.StudentNoSubmission} />
             }
 
-            if (isGroupLab) {
-                submission = submissions.find(s => s.groupID > 0n) ?? null
-            } else {
-                submission = submissions.find(s => s.userID === state.self.ID && s.groupID === 0n) ?? null
-            }
+            const query = (s: Submission) => isGroupLab
+                ? s.groupID > 0n
+                : s.userID === state.self.ID && s.groupID === 0n
+
+            submission = submissions.find(s => query(s)) ?? null
         }
 
         if (assignment && submission) {
             // Confirm both assignment and submission exists before attempting to render
             const review = hasReviews(submission) ? submission.reviews : []
-            let buildLog: JSX.Element[] = []
+            let buildLog: React.JSX.Element[] = []
             const buildLogRaw = submission.BuildInfo?.BuildLog
             if (buildLogRaw) {
-                buildLog = buildLogRaw.split("\n").map((x: string, i: number) => <span key={i} >{x}<br /></span>)
+                // using the index as the key is not ideal, but in this case it is acceptable
+                // because the log lines are not expected to change unless a new submission is made
+                // in which case the component will be re-rendered anyways
+                buildLog = buildLogRaw.split("\n").map((logLine: string, idx: number) => <span key={idx}>{logLine}<br /></span>) // skipcq: JS-0437
             }
 
             return (
                 <div key={submission.ID.toString()} className="mb-4">
                     <LabResultTable submission={submission} assignment={assignment} />
 
-                    {isManuallyGraded(assignment) && submission.released ? <ReviewResult review={review[0]} /> : null}
+                    {isManuallyGraded(assignment.reviewers) && submission.released ? <ReviewResult review={review[0]} /> : null}
 
                     <div className="card bg-light">
                         <code className="card-body" style={{ color: "#c7254e", wordBreak: "break-word" }}>{buildLog}</code>
@@ -79,9 +81,7 @@ const Lab = (): JSX.Element => {
                 </div>
             )
         }
-        return (
-            <div>No submission found</div>
-        )
+        return <CenteredMessage message={state.isTeacher ? KnownMessage.TeacherNoSubmission : KnownMessage.StudentNoSubmission} />
     }
 
     return (

@@ -9,7 +9,7 @@ import { getStatusByUser, isApproved, isGroupSubmission, isValidSubmissionForAss
 import SubmissionTypeIcon from "../student/SubmissionTypeIcon"
 
 
-const NavBarLabs = (): JSX.Element | null => {
+const NavBarLabs = () => {
     const state = useAppState()
     const history = useHistory()
     const location = useLocation()
@@ -56,16 +56,21 @@ const NavBarLabs = (): JSX.Element | null => {
             if (!isValidSubmissionForAssignment(submission, assignment)) {
                 return null
             }
-            const link: NavLink = { link: { text: assignment.name, to: `/course/${state.activeCourse}/${isGroupSubmission(submission) ? "group-lab": "lab"}/${assignment.ID}` }, jsx: submissionIcon(submission) }
+            const link: NavLink = {
+                text: assignment.name,
+                to: `/course/${state.activeCourse}/${isGroupSubmission(submission) ? "group-lab" : "lab"}/${assignment.ID}`,
+                jsx: submissionIcon(submission)
+            }
             return (
-                <div 
-                    className={highlightSubmission(submission, assignment)} 
-                    style={{ position: "relative" }} 
-                    key={assignment.ID.toString()} 
-                    onClick={() => { history.push(link.link.to) }}
+                <div
+                    className={highlightSubmission(submission, assignment)}
+                    style={{ position: "relative" }}
+                    key={submission.ID.toString()}
+                    onClick={() => { history.push(link.to) }}
                     role="button"
+                    aria-hidden="true"
                 >
-                    <NavBarLink link={link.link} jsx={link.jsx} />
+                    <NavBarLink link={link} />
                     <ProgressBar courseID={state.activeCourse.toString()} submission={submission} type={Progress.NAV} />
                 </div>
             )

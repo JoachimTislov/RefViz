@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback } from 'react'
 import { useHistory } from 'react-router'
 import { EnrollmentStatus, hasEnrolled, hasNone, hasPending } from '../Helpers'
 import { useActions } from '../overmind'
@@ -18,21 +18,22 @@ const CardColor = [
     "success"
 ]
 
-const CourseCard = ({ course, enrollment }: CardProps): JSX.Element => {
+const CourseCard = ({ course, enrollment }: CardProps) => {
     const actions = useActions()
     const history = useHistory()
     const status = enrollment.status
 
-    const CourseEnrollmentButton = (): JSX.Element => {
+    const handleEnroll = useCallback(() => actions.enroll(course.ID), [actions, course.ID])
+    const CourseEnrollmentButton = () => {
         if (hasNone(status)) {
-            return <div className="btn btn-primary course-button" onClick={() => actions.enroll(course.ID)}>Enroll</div>
+            return <button className="btn btn-primary course-button" onClick={handleEnroll}>Enroll</button>
         } else if (hasPending(status)) {
-            return <div className="btn btn-secondary course-button disabled">Pending</div>
+            return <button className="btn btn-secondary course-button disabled">Pending</button>
         }
-        return <div className="btn btn-primary course-button" onClick={() => history.push(`/course/${enrollment.courseID}`)}>Go to Course</div>
+        return <button className="btn btn-primary course-button" onClick={() => history.push(`/course/${enrollment.courseID}`)}>Go to Course</button>
     }
 
-    const CourseEnrollmentStatus = (): JSX.Element | null => {
+    const CourseEnrollmentStatus = () => {
         if (!hasEnrolled(status)) {
             return null
         }
