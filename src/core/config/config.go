@@ -2,6 +2,8 @@ package config
 
 import (
 	"fmt"
+	"log" // Added import for log.Fatalf
+	"net/url" // Import for url.ParseRequestURI
 	"strings"
 
 	"github.com/JoachimTislov/RefViz/internal"
@@ -78,17 +80,25 @@ func GetBaseBranchLink() string {
 	return config.BaseBranchLink
 }
 
-func SetBaseBranchLink(link string) {
+func SetBaseBranchLink(link string) error {
 	if link == "" {
-		return
+		return nil // No error if the link is empty, just don't set it.
+	}
+	_, err := url.ParseRequestURI(link)
+	if err != nil {
+		return fmt.Errorf("invalid base branch link URL: %w", err)
 	}
 	config.BaseBranchLink = link
-	save()
+	// Removed save() call here, will be called by Save()
+	return nil
 }
 
 func save() error {
-	if err := internal.MarshalAndWriteToFile(config, path.Tmp(Name)); err != nil {
-		return fmt.Errorf("error updating configurations: %v", err)
+	return internal.MarshalAndWriteToFile(config, path.Tmp(Name))
+}
+
+func Save() {
+	if err := save(); err != nil {
+		log.Fatalf("Error saving config: %v", err)
 	}
-	return nil
 }

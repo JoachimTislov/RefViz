@@ -1,41 +1,43 @@
 package config
 
 import (
+	"fmt" // Added import for fmt.Errorf
 	"log"
 	"strings"
 )
 
-func Exclude(exDir, exFile, inExt, exSymbol, exFindRefsForSymbols, exFindRefsForSymbolsPrefix *string) {
+func Exclude(exDir, exFile, inExt, exSymbol, exFindRefsForSymbols, exFindRefsForSymbolsPrefix *string) error {
 	if *exDir != "" {
 		if err := addExDirs(*exDir); err != nil {
-			log.Fatalf("Error excluding directory: %v\n", err)
+			return fmt.Errorf("error excluding directory: %w", err)
 		}
 	}
 	if *exFile != "" {
 		if err := addExFiles(*exFile); err != nil {
-			log.Fatalf("Error excluding file: %v\n", err)
+			return fmt.Errorf("error excluding file: %w", err)
 		}
 	}
 	if *inExt != "" {
 		if err := addInExt(*inExt); err != nil {
-			log.Fatalf("Error including extension: %v\n", err)
+			return fmt.Errorf("error including extension: %w", err)
 		}
 	}
 	if *exSymbol != "" {
 		if err := addExSymbols(*exSymbol); err != nil {
-			log.Fatalf("Error excluding symbol: %v\n", err)
+			return fmt.Errorf("error excluding symbol: %w", err)
 		}
 	}
 	if *exFindRefsForSymbols != "" {
 		if err := addExFindRefsForSymbols(*exFindRefsForSymbols); err != nil {
-			log.Fatalf("Error excluding find refs for symbols: %v\n", err)
+			return fmt.Errorf("error excluding find refs for symbols: %w", err)
 		}
 	}
 	if *exFindRefsForSymbolsPrefix != "" {
 		if err := addExFindRefsForSymbolsPrefix(*exFindRefsForSymbolsPrefix); err != nil {
-			log.Fatalf("Error excluding find refs for symbols prefix: %v\n", err)
+			return fmt.Errorf("error excluding find refs for symbols prefix: %w", err)
 		}
 	}
+	return nil
 }
 
 func addExDirs(dir string) error {
@@ -44,8 +46,7 @@ func addExDirs(dir string) error {
 
 func addExFiles(file string) error {
 	if config.ExFiles == nil {
-		sMap := newSbMap(file)
-		config.ExFiles = sMap
+		config.ExFiles = newSbMap()
 	}
 	return exclude(&config.ExFiles, file)
 }
@@ -62,17 +63,26 @@ func addExSymbols(symbol string) error {
 }
 
 func addExFindRefsForSymbols(symbol string) error {
+	if config.ExFindRefsForSymbols.Name == nil {
+		config.ExFindRefsForSymbols.Name = newSbMap()
+	}
 	return exclude(&config.ExFindRefsForSymbols.Name, symbol)
 }
 
 func addExFindRefsForSymbolsPrefix(prefix string) error {
+	if config.ExFindRefsForSymbols.Prefix == nil {
+		config.ExFindRefsForSymbols.Prefix = newSbMap()
+	}
 	return exclude(&config.ExFindRefsForSymbols.Prefix, prefix)
 }
 
 func exclude(m *SbMap, item string) error {
 	if (*m)[item] {
-		log.Fatalf("Item %s already exists\n", item)
+		return fmt.Errorf("item %s already exists in config", item) // Return an error instead of log.Fatalf
+	}
+	if *m == nil { // Ensure map is initialized
+		*m = newSbMap()
 	}
 	(*m)[item] = true
-	return save()
+	return nil // Removed save() call
 }
