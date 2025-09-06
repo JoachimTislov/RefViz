@@ -12,6 +12,23 @@ const (
 	tempFolder     = "/refViz"
 	// customPath is used to adjust the root path of the project
 	// This only for development, TODO: remove later
+)
+
+// testTempFolderOverride is used by tests to redirect temporary file creation.
+var testTempFolderOverride string
+
+// SetTestTmpFolder sets a temporary directory for testing purposes.
+// This causes Tmp() and related functions to write to this directory.
+func SetTestTmpFolder(dir string) {
+	testTempFolderOverride = dir
+}
+
+// ResetTestTmpFolder clears the temporary directory override.
+func ResetTestTmpFolder() {
+	testTempFolderOverride = ""
+}
+
+const (
 	customPath = "/sample-code" // /sample-code/quickfeed
 )
 
@@ -67,5 +84,8 @@ func getRoot(name string) string {
 
 // tmp returns the path of the temporary folder
 func tmp(name string) string {
+	if testTempFolderOverride != "" {
+		return filepath.Join(testTempFolderOverride, name)
+	}
 	return filepath.Join(tempFolder, name)
 }
