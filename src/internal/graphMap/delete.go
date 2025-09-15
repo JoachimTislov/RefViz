@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/JoachimTislov/RefViz/internal/path"
-	"github.com/JoachimTislov/RefViz/internal/prompt"
+	"github.com/JoachimTislov/refviz/internal/path"
+	"github.com/JoachimTislov/refviz/internal/prompt"
 )
 
 func Delete(name *string) error {

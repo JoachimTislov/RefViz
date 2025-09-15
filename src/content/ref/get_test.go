@@ -3,10 +3,10 @@ package ref_test
 import (
 	"testing"
 
-	"github.com/JoachimTislov/RefViz/content/ref"
-	"github.com/JoachimTislov/RefViz/internal/path"
-	"github.com/JoachimTislov/RefViz/internal/types"
-	"github.com/JoachimTislov/RefViz/test/helpers"
+	"github.com/JoachimTislov/refviz/content/ref"
+	"github.com/JoachimTislov/refviz/internal/path"
+	"github.com/JoachimTislov/refviz/internal/types"
+	"github.com/JoachimTislov/refviz/test/helpers"
 	"github.com/google/go-cmp/cmp"
 )
 

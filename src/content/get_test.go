@@ -4,9 +4,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	c "github.com/JoachimTislov/RefViz/content"
-	"github.com/JoachimTislov/RefViz/core/cache"
-	"github.com/JoachimTislov/RefViz/internal/path"
+	c "github.com/JoachimTislov/refviz/content"
+	"github.com/JoachimTislov/refviz/core/cache"
+	"github.com/JoachimTislov/refviz/internal/path"
 )
 
 func TestGet(t *testing.T) {

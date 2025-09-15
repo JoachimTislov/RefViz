@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/JoachimTislov/RefViz/internal"
-	"github.com/JoachimTislov/RefViz/internal/path"
-	"github.com/JoachimTislov/RefViz/internal/types"
-	"github.com/JoachimTislov/RefViz/internal/utils"
+	"github.com/JoachimTislov/refviz/internal"
+	"github.com/JoachimTislov/refviz/internal/path"
+	"github.com/JoachimTislov/refviz/internal/types"
+	"github.com/JoachimTislov/refviz/internal/utils"
 )
 
 func Load(name *string) (*types.RMap, error) {

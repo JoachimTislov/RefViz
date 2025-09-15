@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/JoachimTislov/RefViz/internal"
-	"github.com/JoachimTislov/RefViz/internal/path"
-	"github.com/JoachimTislov/RefViz/internal/types"
+	"github.com/JoachimTislov/refviz/internal"
+	"github.com/JoachimTislov/refviz/internal/path"
+	"github.com/JoachimTislov/refviz/internal/types"
 )
 
 var cache = newCache()

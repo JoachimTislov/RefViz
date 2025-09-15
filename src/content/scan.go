@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/JoachimTislov/RefViz/core/config"
-	"github.com/JoachimTislov/RefViz/internal/routines"
+	"github.com/JoachimTislov/refviz/core/config"
+	"github.com/JoachimTislov/refviz/internal/routines"
 )
 
 // Scan scans the content for symbols and references

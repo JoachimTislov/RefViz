@@ -7,6 +7,7 @@ Began development of RefViz in relation to writing a thesis about maintenance fo
 ## Dependencies
 
 - [Gopls CLI](https://github.com/golang/tools/blob/master/gopls/doc/command-line.md)
+    - Install with `go install golang.org/x/tools/gopls@latest`
 
 ## Supported Languages
 
@@ -14,12 +15,12 @@ Began development of RefViz in relation to writing a thesis about maintenance fo
 
 ## Unsupported languages which I want to support in the future
 
-- [Python](https://docs.python.org/3/)
-- [C](https://devdocs.io/c/)/[C++](https://devdocs.io/cpp/)
-- [C#](https://learn.microsoft.com/en-us/dotnet/csharp/tour-of-csharp/)
-- [Rust](https://doc.rust-lang.org/beta/)
 - [Typescript](https://www.typescriptlang.org/fr/docs/)/[Javascript](https://devdocs.io/javascript/)
 - [Java](https://docs.oracle.com/en/java/)
+- [C#](https://learn.microsoft.com/en-us/dotnet/csharp/tour-of-csharp/)
+- [Python](https://docs.python.org/3/)
+- [C](https://devdocs.io/c/)/[C++](https://devdocs.io/cpp/)
+- [Rust](https://doc.rust-lang.org/beta/)
 
 ## Supported graph types
 

@@ -3,9 +3,9 @@ package symbol
 import (
 	"testing"
 
-	"github.com/JoachimTislov/RefViz/internal/path"
-	"github.com/JoachimTislov/RefViz/internal/types"
-	"github.com/JoachimTislov/RefViz/test/helpers"
+	"github.com/JoachimTislov/refviz/internal/path"
+	"github.com/JoachimTislov/refviz/internal/types"
+	"github.com/JoachimTislov/refviz/test/helpers"
 	"github.com/google/go-cmp/cmp"
 )
 

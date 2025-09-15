@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/JoachimTislov/RefViz/internal/types"
+	"github.com/JoachimTislov/refviz/internal/types"
 )
 
 // Gets the line and character range position of the symbol

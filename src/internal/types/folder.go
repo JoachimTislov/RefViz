@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/JoachimTislov/RefViz/internal/path"
+	"github.com/JoachimTislov/refviz/internal/path"
 )
 
 type Folder struct {

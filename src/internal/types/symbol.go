@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/JoachimTislov/RefViz/core/config"
+	"github.com/JoachimTislov/refviz/core/config"
 )
 
 type Symbol struct {

@@ -6,9 +6,9 @@ import (
 	"log"
 	"path/filepath"
 
-	"github.com/JoachimTislov/RefViz/core/config"
-	"github.com/JoachimTislov/RefViz/internal/path"
-	"github.com/JoachimTislov/RefViz/internal/prompt"
+	"github.com/JoachimTislov/refviz/core/config"
+	"github.com/JoachimTislov/refviz/internal/path"
+	"github.com/JoachimTislov/refviz/internal/prompt"
 )
 
 // findContent walks for the content root and attempts to find the content

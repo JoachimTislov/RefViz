@@ -3,9 +3,9 @@ package load
 import (
 	"fmt"
 
-	"github.com/JoachimTislov/RefViz/core/cache"
-	"github.com/JoachimTislov/RefViz/core/config"
-	"github.com/JoachimTislov/RefViz/internal/path"
+	"github.com/JoachimTislov/refviz/core/cache"
+	"github.com/JoachimTislov/refviz/core/config"
+	"github.com/JoachimTislov/refviz/internal/path"
 )
 
 func Defs() error {

@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	refVizRootPath = "refVizProjectRoot"
-	tempFolder     = "/refViz"
+	refvizRootPath = "refvizProjectRoot"
+	tempFolder     = "/refviz"
 	// customPath is used to adjust the root path of the project
 	// This only for development, TODO: remove later
 	customPath = "/sample-code" // /sample-code/quickfeed
@@ -17,12 +17,12 @@ const (
 
 // Project loads the project path, and will panic if is fails
 func Project() string {
-	path := os.Getenv(refVizRootPath)
+	path := os.Getenv(refvizRootPath)
 	if path == "" {
 		if err := loadRoot(); err != nil {
 			panic(fmt.Errorf("error loading root path: %w", err))
 		}
-		path = os.Getenv(refVizRootPath)
+		path = os.Getenv(refvizRootPath)
 	}
 	if customPath != "" {
 		path = filepath.Join(path, customPath)
@@ -36,8 +36,8 @@ func loadRoot() error {
 	if err != nil {
 		return fmt.Errorf("error getting project root, err: %w", err)
 	}
-	if err := os.Setenv(refVizRootPath, root); err != nil {
-		return fmt.Errorf("error setting env %s, err: %v", refVizRootPath, err)
+	if err := os.Setenv(refvizRootPath, root); err != nil {
+		return fmt.Errorf("error setting env %s, err: %v", refvizRootPath, err)
 	}
 	return nil
 }

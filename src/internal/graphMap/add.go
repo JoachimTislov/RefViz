@@ -8,12 +8,12 @@ import (
 	"os"
 	"path/filepath"
 
-	c "github.com/JoachimTislov/RefViz/content"
-	"github.com/JoachimTislov/RefViz/content/symbol"
-	"github.com/JoachimTislov/RefViz/core/cache"
-	"github.com/JoachimTislov/RefViz/internal/path"
-	"github.com/JoachimTislov/RefViz/internal/prompt"
-	"github.com/JoachimTislov/RefViz/internal/types"
+	c "github.com/JoachimTislov/refviz/content"
+	"github.com/JoachimTislov/refviz/content/symbol"
+	"github.com/JoachimTislov/refviz/core/cache"
+	"github.com/JoachimTislov/refviz/internal/path"
+	"github.com/JoachimTislov/refviz/internal/prompt"
+	"github.com/JoachimTislov/refviz/internal/types"
 )
 
 func AddNode(mapName, nodeName *string) error {

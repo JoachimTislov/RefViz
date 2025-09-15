@@ -4,9 +4,9 @@
 # $2 is the file to be searched
 # $3 is the directory to be searched
 grep -oP "$1" "$2" | while read -r function; do
-    grep -r "$function" "$3"
+  grep -r "$function" "$3"
 done
 
-# For example, CreateUser: bash script.sh "CreateUser" $HOME/RefViz/sample-code/quickfeed/database/database.go $HOME/RefViz/sample-code/quickfeed
+# For example, CreateUser: bash script.sh "CreateUser" $HOME/refviz/sample-code/quickfeed/database/database.go $HOME/refviz/sample-code/quickfeed
 
 # Versions of this can be used to map out references in a codebase.

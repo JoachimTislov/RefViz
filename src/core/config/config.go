@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/JoachimTislov/RefViz/internal"
-	"github.com/JoachimTislov/RefViz/internal/path"
+	"github.com/JoachimTislov/refviz/internal"
+	"github.com/JoachimTislov/refviz/internal/path"
 )
 
 var config = NewConfig()

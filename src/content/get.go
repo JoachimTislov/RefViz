@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/JoachimTislov/RefViz/content/ref"
-	"github.com/JoachimTislov/RefViz/content/symbol"
-	"github.com/JoachimTislov/RefViz/core/cache"
-	"github.com/JoachimTislov/RefViz/core/config"
-	"github.com/JoachimTislov/RefViz/internal/routines"
-	"github.com/JoachimTislov/RefViz/internal/types"
+	"github.com/JoachimTislov/refviz/content/ref"
+	"github.com/JoachimTislov/refviz/content/symbol"
+	"github.com/JoachimTislov/refviz/core/cache"
+	"github.com/JoachimTislov/refviz/core/config"
+	"github.com/JoachimTislov/refviz/internal/routines"
+	"github.com/JoachimTislov/refviz/internal/types"
 )
 
 func Get(path string, scanAgain bool, everythingIsUpToDate *bool) func() error {

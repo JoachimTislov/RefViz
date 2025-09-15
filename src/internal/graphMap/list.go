@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/JoachimTislov/RefViz/internal/path"
+	"github.com/JoachimTislov/refviz/internal/path"
 )
 
 func ListMaps() error {

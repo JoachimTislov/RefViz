@@ -6,9 +6,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/JoachimTislov/RefViz/internal/graphMap"
-	"github.com/JoachimTislov/RefViz/internal/path"
-	"github.com/JoachimTislov/RefViz/internal/utils"
+	"github.com/JoachimTislov/refviz/internal/graphMap"
+	"github.com/JoachimTislov/refviz/internal/path"
+	"github.com/JoachimTislov/refviz/internal/utils"
 )
 
 func CreateGraphvizFile(mapName *string) error {

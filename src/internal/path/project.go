@@ -9,14 +9,14 @@ func QuickfeedRootMain() string {
 }
 
 func Quickfeed() string {
-	return filepath.Join(refVizStaticRoot(), "sample-code", "quickfeed")
+	return filepath.Join(refvizStaticRoot(), "sample-code", "quickfeed")
 }
 
 func TestData() string {
-	return filepath.Join(refVizStaticRoot(), "testData")
+	return filepath.Join(refvizStaticRoot(), "testData")
 }
 
-func refVizStaticRoot() string {
+func refvizStaticRoot() string {
 	root, err := getProjectRoot()
 	if err != nil {
 		panic("error getting user home directory")

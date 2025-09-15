@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/JoachimTislov/RefViz/internal/utils"
+	"github.com/JoachimTislov/refviz/internal/utils"
 )
 
 // getProjectRoot returns the root directory of the users project

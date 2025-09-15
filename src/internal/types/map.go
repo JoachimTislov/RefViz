@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 
-	"github.com/JoachimTislov/RefViz/internal"
+	"github.com/JoachimTislov/refviz/internal"
 )
 
 // Recursive data structure to store the project structure.

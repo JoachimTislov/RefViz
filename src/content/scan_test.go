@@ -4,8 +4,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	c "github.com/JoachimTislov/RefViz/content"
-	"github.com/JoachimTislov/RefViz/internal/path"
+	c "github.com/JoachimTislov/refviz/content"
+	"github.com/JoachimTislov/refviz/internal/path"
 )
 
 func TestScan(t *testing.T) {

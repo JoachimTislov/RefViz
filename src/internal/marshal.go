@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/JoachimTislov/RefViz/internal/utils"
+	"github.com/JoachimTislov/refviz/internal/utils"
 )
 
 func MarshalAndWriteToFile(v any, filePath string) error {

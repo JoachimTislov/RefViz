@@ -5,10 +5,10 @@ import (
 	"log"
 	"path/filepath"
 
-	"github.com/JoachimTislov/RefViz/core/cache"
-	p "github.com/JoachimTislov/RefViz/internal/path"
-	"github.com/JoachimTislov/RefViz/internal/types"
-	"github.com/JoachimTislov/RefViz/lsp"
+	"github.com/JoachimTislov/refviz/core/cache"
+	p "github.com/JoachimTislov/refviz/internal/path"
+	"github.com/JoachimTislov/refviz/internal/types"
+	"github.com/JoachimTislov/refviz/lsp"
 )
 
 const (

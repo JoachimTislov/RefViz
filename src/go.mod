@@ -1,6 +1,8 @@
-module github.com/JoachimTislov/RefViz
+module github.com/JoachimTislov/refviz
 
-go 1.23.4
+go 1.24.2
+
+toolchain go1.24.6
 
 require (
 	github.com/google/go-cmp v0.7.0
@@ -9,5 +11,5 @@ require (
 
 require (
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e // indirect
-	golang.org/x/sys v0.1.0 // indirect
+	golang.org/x/sys v0.34.0 // indirect
 )

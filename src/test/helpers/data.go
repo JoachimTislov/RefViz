@@ -1,8 +1,8 @@
 package helpers
 
 import (
-	"github.com/JoachimTislov/RefViz/internal/path"
-	"github.com/JoachimTislov/RefViz/internal/types"
+	"github.com/JoachimTislov/refviz/internal/path"
+	"github.com/JoachimTislov/refviz/internal/types"
 )
 
 // Taken Quickfeed's main.go

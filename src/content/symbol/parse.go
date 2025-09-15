@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/JoachimTislov/RefViz/content/position"
-	"github.com/JoachimTislov/RefViz/core/config"
-	"github.com/JoachimTislov/RefViz/internal/types"
+	"github.com/JoachimTislov/refviz/content/position"
+	"github.com/JoachimTislov/refviz/core/config"
+	"github.com/JoachimTislov/refviz/internal/types"
 )
 
 const (

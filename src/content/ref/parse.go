@@ -8,10 +8,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/JoachimTislov/RefViz/content/symbol"
-	"github.com/JoachimTislov/RefViz/core/cache"
-	"github.com/JoachimTislov/RefViz/internal/types"
-	"github.com/JoachimTislov/RefViz/internal/utils"
+	"github.com/JoachimTislov/refviz/content/symbol"
+	"github.com/JoachimTislov/refviz/core/cache"
+	"github.com/JoachimTislov/refviz/internal/types"
+	"github.com/JoachimTislov/refviz/internal/utils"
 )
 
 func parseRefs(output string, childSymbol *types.Symbol, relPath string) error {

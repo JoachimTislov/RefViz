@@ -5,10 +5,10 @@ import (
 	"os"
 	"testing"
 
-	"github.com/JoachimTislov/RefViz/core/cache"
-	"github.com/JoachimTislov/RefViz/core/load"
-	"github.com/JoachimTislov/RefViz/internal/path"
-	"github.com/JoachimTislov/RefViz/internal/utils/rand"
+	"github.com/JoachimTislov/refviz/core/cache"
+	"github.com/JoachimTislov/refviz/core/load"
+	"github.com/JoachimTislov/refviz/internal/path"
+	"github.com/JoachimTislov/refviz/internal/utils/rand"
 )
 
 // ExecuteTestSequence loads the test cache, runs the tests, and cleans up the test cache

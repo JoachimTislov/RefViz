@@ -6,13 +6,13 @@ import (
 	"log"
 	"os/exec"
 
-	c "github.com/JoachimTislov/RefViz/content"
-	"github.com/JoachimTislov/RefViz/core/cache"
-	"github.com/JoachimTislov/RefViz/core/config"
-	"github.com/JoachimTislov/RefViz/core/load"
-	"github.com/JoachimTislov/RefViz/internal/ops"
-	"github.com/JoachimTislov/RefViz/internal/path"
-	"github.com/JoachimTislov/RefViz/mappers"
+	c "github.com/JoachimTislov/refviz/content"
+	"github.com/JoachimTislov/refviz/core/cache"
+	"github.com/JoachimTislov/refviz/core/config"
+	"github.com/JoachimTislov/refviz/core/load"
+	"github.com/JoachimTislov/refviz/internal/ops"
+	"github.com/JoachimTislov/refviz/internal/path"
+	"github.com/JoachimTislov/refviz/mappers"
 )
 
 func init() {

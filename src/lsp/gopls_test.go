@@ -3,8 +3,8 @@ package lsp_test
 import (
 	"testing"
 
-	"github.com/JoachimTislov/RefViz/internal/path"
-	"github.com/JoachimTislov/RefViz/lsp"
+	"github.com/JoachimTislov/refviz/internal/path"
+	"github.com/JoachimTislov/refviz/lsp"
 )
 
 func TestRunGopls(t *testing.T) {

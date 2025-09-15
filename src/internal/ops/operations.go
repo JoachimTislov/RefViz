@@ -3,7 +3,7 @@ package ops
 import (
 	"log"
 
-	"github.com/JoachimTislov/RefViz/internal/graphMap"
+	"github.com/JoachimTislov/refviz/internal/graphMap"
 )
 
 type operation []struct {
