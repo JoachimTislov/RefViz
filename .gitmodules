@@ -1,0 +1,3 @@
+[submodule "sample-code/quickfeed"]
+	path = sample-code/quickfeed
+	url = https://github.com/quickfeed/quickfeed.git
